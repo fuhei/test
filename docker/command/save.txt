@@ -1,0 +1,3 @@
+
+
+docker save centos-7-minimal:latest -o centos-7-minimal.tar
