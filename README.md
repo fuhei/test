@@ -105,6 +105,7 @@
 * `libconfigini`:  配置文件加载读取输出
 * `libcurl`: C-url库
 * `libevent`: Libevent库
+* `libglnx`: libglnx是后继libgsystem
 * `libmemif`: Shared Memory Packet Interface (memif) Library
 * `libpcap`: LIBPCAP by [The Tcpdump Group](https://www.tcpdump.org)
 * `libseccomp`: Enhanced seccomp library
