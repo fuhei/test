@@ -1,5 +1,6 @@
 #!/bin/bash 
 # 
+set -euo pipefail
 
 if [ $# -lt 1 ]; then
 	echo "need commit string"
