@@ -41,11 +41,11 @@ int main()
 {
 					 ///home/rongtao/test/c/glibc/stdlib
 	//char file[256] = {"/home/rongtao/test/c/glibc/stdlib/"};;
-	char file[256] = {"XXXX.out"};
+	char file[256] = {"/tmp/"};
 
 	printf("file: %s\n", file);
 	int ret = mkstemp(file);
-
+	perror("mkstemp: ");
 	printf("file: %s, ret = %d\n", file, ret);
 
 
