@@ -1,0 +1,13 @@
+#! /usr/bin/env stap
+
+probe begin {
+  printf("TYPEWRITER ON\n")
+}
+
+probe kernel.function("cmdline_proc_show") {
+  printf("PROBE\n");
+}
+
+probe end {
+  printf("DONE\n")
+}
