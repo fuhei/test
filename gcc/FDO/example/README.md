@@ -29,3 +29,12 @@ $ gcc sort.c -o sort_instrumented.out -fprofile-generate
 $ gcc -O3 sort.c -o sort_fdo.out -fprofile-use=sort.gcda
 ./sort_fdo.out
 ```
+
+## 简化流程脚本
+
+先后执行
+
+```
+./compile.sh
+./run.sh
+```
