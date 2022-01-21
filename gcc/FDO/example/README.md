@@ -38,3 +38,12 @@ $ gcc -O3 sort.c -o sort_fdo.out -fprofile-use=sort.gcda
 ./compile.sh
 ./run.sh
 ```
+
+## 验证 TLB 命中率
+
+> perf使用方法见 `test/linux/cmd/perf/TLB-loads.sh`.
+
+```
+sudo perf stat -e dTLB-loads,dTLB-loads-misses,iTLB-loads,iTLB-loads-misses ./sort.out
+```
+
