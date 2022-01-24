@@ -8,5 +8,4 @@ sort_fdo:
 sort_fdo_again:
 	gcc -O3 sort.c -o sort_fdo.out -fprofile-use=sort.gcda
 clean:
-	rm -f *.out *.gcda
-
+	rm -f *.out *.gcda *.profraw
