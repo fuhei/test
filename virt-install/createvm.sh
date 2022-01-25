@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# 配置NAT网络
+# --network default
+
 virt-install --virt-type=kvm \
 	--name centos-stream-9.2 \
 	--memory 8192 \
