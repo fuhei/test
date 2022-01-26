@@ -34,3 +34,20 @@ virt-install --virt-type=kvm \
 	--disk path=/var/lib/libvirt/images/$VM_NAME.qcow2,size=10,format=qcow2 \
 	--check all=off
 }
+
+# ERROR    Libvirt version does not support UEFI.
+success_UEFI_1()
+{
+OS_NAME=os-1
+virt-install --virt-type=kvm \
+	--name $OS_NAME\
+	--memory 8192 \
+	--vcpus 8 \
+	--os-type=linux \
+	--os-variant=centos-stream9 \
+	--pxe \
+	--boot=uefi \
+	--network=default,model=virtio \
+	--disk path=/var/lib/libvirt/images/$VM_NAME.qcow2,size=10,format=qcow2 \
+	--check all=off
+}
