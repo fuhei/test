@@ -23,6 +23,8 @@ sudo virt-install --name=guest-name --ram=2048 --vcpus=1 \
 success_BIOS_1()
 {
 VM_NAME=os-1
+VM_DISK=/var/lib/libvirt/images/$VM_NAME.qcow2
+rm -f $VM_DISK
 virt-install --virt-type=kvm \
 	--name $VM_NAME\
 	--memory 8192 \
@@ -31,7 +33,7 @@ virt-install --virt-type=kvm \
 	--os-variant=centos-stream9 \
 	--pxe \
 	--network=default,model=virtio \
-	--disk path=/var/lib/libvirt/images/$VM_NAME.qcow2,size=15,format=qcow2 \
+	--disk path=$VM_DISK,size=15,format=qcow2 \
 	--check all=off
 }
 
@@ -39,6 +41,9 @@ virt-install --virt-type=kvm \
 success_UEFI_1()
 {
 VM_NAME=os-1
+VM_DISK=/var/lib/libvirt/images/$VM_NAME.qcow2
+
+rm -f $VM_DISK
 virt-install --virt-type=kvm \
 	--name $VM_NAME\
 	--memory 8192 \
@@ -48,6 +53,6 @@ virt-install --virt-type=kvm \
 	--pxe \
 	--boot=uefi \
 	--network=default,model=virtio \
-	--disk path=/var/lib/libvirt/images/$VM_NAME.qcow2,size=10,format=qcow2 \
+	--disk path=$VM_DISK,size=10,format=qcow2 \
 	--check all=off
 }
