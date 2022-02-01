@@ -41,16 +41,19 @@ Execute every binary to know how much they delay.
 For this case you will need to compile all the binaries with the debug symbols
 and the `-fprofile-generate` flag to keep track of the execution feedback:
 
-    $ gcc -g3 -Iinclude -lm -o bubble_sort src/bubble_sort.c src/debug.c
-    -fprofile-generate $ gcc -g3 -Iinclude -lm -o matrix_multiplication
-    src/matrix_multiplication.c src/debug.c -fprofile-generate $ gcc -g3
-    -Iinclude -lm -o pi_calculation src/pi_calculation.c src/debug.c
+```
+$ gcc -g3 -Iinclude -lm -o bubble_sort src/bubble_sort.c src/debug.c -fprofile-generate
+$ gcc -g3 -Iinclude -lm -o matrix_multiplication src/matrix_multiplication.c src/debug.c -fprofile-generate 
+$ gcc -g3 -Iinclude -lm -o pi_calculation src/pi_calculation.c src/debug.c
     -fprofile-generate
-    
+```
+
 Then execute each binary to get the feedback:
 
-    $ ./bubble_sort $ ./matrix_multiplication $ ./pi_calculation
-    
+```
+$ ./bubble_sort $ ./matrix_multiplication $ ./pi_calculation
+```
+
 Then recompile again with the `-fprofile-use` flag and the optimization enabled
 (`-O3`)
 
@@ -58,7 +61,9 @@ In case that you want to compile using `$ make release` you will need to change
 the `RELEASEFLAGS` variable to include `-fprofile-use=*.gcda` to use all the
 profile files
 
-    $ make RELEASEFLAGS="-O3 -fprofile-use=*.gcda" release
+```
+$ make RELEASEFLAGS="-O3 -fprofile-use=*.gcda" release
+```
 
 Execute the binaries again to measure the time and compare with other
 optimization methods.
@@ -68,7 +73,9 @@ optimization methods.
 The first thing you do after downloading a source code is compiling, so go
 ahead and execute:
 
-    $ make
+```
+$ make
+```
 
 Then we have included a proccess that generates the profiles for you. We are
 taking advantage of a perf wrapper named `ocperf.py`, this tool can be found in
@@ -77,20 +84,25 @@ downloading and compiling AutoFDO from https://github.com/google/autofdo. The
 default location for this tools is /tmp/ you can change it by overwriting the
 `INSTALLATION_PATH` variable:
 
-    $ make autofdo
-    
+```
+$ make autofdo
+```
+
 Then before recompiling, you will need to change the `RELEASEFLAGS` variable to
 use the .afdo profile files
 
-    $ make RELEASEFLAGS="-O3 -fauto-profile=*.afdo" release
-    
+```
+$ make RELEASEFLAGS="-O3 -fauto-profile=*.afdo" release
+``` 
 
 Another option is to merge the profiles using the `profile_merger` binary in
 AutoFDO package. This will make you handle only just one .afdo file instead of
 multiple (Remember to include `-gcov_version=1` flag):
 
-    $ /tmp/autofdo/profile_merger -gcov_version=1 *.afdo $ make
-    RELEASEFLAGS="-O3 -fauto-profile=fbdata.afdo" release
+```
+$ /tmp/autofdo/profile_merger -gcov_version=1 *.afdo 
+$ make RELEASEFLAGS="-O3 -fauto-profile=fbdata.afdo" release
+```
 
 Execute the binaries again to measure the time and compare with other
 optimization methods.
@@ -102,19 +114,18 @@ all generated files to start compiling again.
 
 If you want to get the perf.data of any execution you can use the
 `generate_perf_data.sh` file. This script will automatically download the
-pmu_tools repository in specified directory (/tmp/ by default):
+`pmu_tools` repository in specified directory (/tmp/ by default):
 
-    $ ./generate_perf_data.sh --command="./some_tool --params"
-
+```
+$ ./generate_perf_data.sh --command="./some_tool --params"
+```
 If you want to generate an AutoFDO profile, you can use the
 `profile_generator.py`. This script will automatically download and compile
 AutoFDO package in specified directory (/tmp/ by default)
 
-    $ ./profile_generator.py some_tool.data
+```
+$ ./profile_generator.py some_tool.data
+```
 
 Then you will have a `some_tool.afdo` merged profile that can be used to
-recompile the "some_tool" binaries
-
-
-
-    
+recompile the `"some_tool"` binaries.   

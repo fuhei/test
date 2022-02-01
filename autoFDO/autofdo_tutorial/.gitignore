@@ -13,6 +13,7 @@
 /*.a
 /*.la
 /*.lo
+/*.gcda
 
 # Shared objects (inc. Windows DLLs)
 /*.dll
