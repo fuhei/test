@@ -51,7 +51,9 @@ $ gcc -g3 -Iinclude -lm -o pi_calculation src/pi_calculation.c src/debug.c
 Then execute each binary to get the feedback:
 
 ```
-$ ./bubble_sort $ ./matrix_multiplication $ ./pi_calculation
+$ ./bubble_sort
+$ ./matrix_multiplication
+$ ./pi_calculation
 ```
 
 Then recompile again with the `-fprofile-use` flag and the optimization enabled
