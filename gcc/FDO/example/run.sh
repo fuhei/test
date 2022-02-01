@@ -13,3 +13,6 @@ log_err "Optimized with -O3"
 
 log_err "FDO"
 ./sort_fdo.out
+
+log_err "AutoFDO"
+./sort_autofdo.out

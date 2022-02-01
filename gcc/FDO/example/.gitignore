@@ -1,2 +1,5 @@
-/sort.gcda
-/default.profraw
+/*.gcda
+/*.profraw
+/perf.data
+/*.gcov
+/*.out
