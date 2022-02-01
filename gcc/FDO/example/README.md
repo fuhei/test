@@ -1,6 +1,8 @@
 
 # 流程
 
+[https://gcc.gnu.org/wiki/AutoFDO/Tutorial](https://gcc.gnu.org/wiki/AutoFDO/Tutorial)
+
 1. 原始编译运行
 
 ```
