@@ -1,0 +1,1 @@
+clang 不用添加 -lpthread 即可编译 带有 `pthread_create()` 多线程应用的程序.
