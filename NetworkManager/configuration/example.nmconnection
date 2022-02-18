@@ -1,0 +1,13 @@
+[connection]
+id=example_connection
+type=802-3-ethernet
+autoconnect=true
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+
+[802-3-ethernet]
+mac-address=00:53:00:8f:fa:66
