@@ -1,6 +1,9 @@
+# binary relate
 *.out
 *.d
 *.o
+
+# module relate
 *.ko
 *.ko.cmd
 *.o.cmd
@@ -13,3 +16,7 @@ Module.symvers
 modules.order
 .Module.symvers.cmd
 .modules.order.cmd
+
+# qemu relate
+*.qcow2
+*.iso
