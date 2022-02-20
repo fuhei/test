@@ -153,6 +153,7 @@
 * `perl`: Perl语言
 * `php`: PHP语言
 * `pmdk`: 持久性内存开发套件
+* `podman`: Docker 兼容替代品
 * `posix`: POSIX
 * `programmer`: 那些仰慕的大神们
 * `proxy`: 代理
