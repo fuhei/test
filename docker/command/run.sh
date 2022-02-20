@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Hello
+docker run centos /bin/echo "Hello"
+
 # 以下命令使用 ubuntu 镜像启动一个容器，参数为以命令行模式进入该容器：
 #-i: 交互式操作。
 #-t: 终端。
