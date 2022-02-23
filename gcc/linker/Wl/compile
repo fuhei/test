@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# 将 -q 传递给 ld 链接器
+gcc main.c -Wall -Werror -Wl,-q
+
+# 相同, clang 好像也是用 ld 作为连接器
+clang main.c -Wall -Werror -Wl,-q
