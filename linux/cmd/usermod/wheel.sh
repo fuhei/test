@@ -1,0 +1,2 @@
+
+usermod -aG wheel username
