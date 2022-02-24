@@ -2,6 +2,9 @@
 
 # 将 -q 传递给 ld 链接器
 gcc main.c -Wall -Werror -Wl,-q
+gcc -S main.c -o main.s -Wall -Werror -Wl,-q
 
-# 相同, clang 好像也是用 ld 作为连接器
-clang main.c -Wall -Werror -Wl,-q
+# 相同, clang 好像也是用 ld 作为连接器,但是会出错,因为汇编阶段没有链接
+# clang-13: error: -Wl,-q: 'linker' input unused [-Werror,-Wunused-command-line-argument]
+clang -S main.c -o main.s -Wall -Werror -Wl,-q
+#
