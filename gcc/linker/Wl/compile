@@ -1,10 +1,33 @@
 #!/bin/bash
 
 # 将 -q 传递给 ld 链接器
-gcc main.c -Wall -Werror -Wl,-q
-gcc -S main.c -o main.s -Wall -Werror -Wl,-q
+gcc main.c -Wall -Werror -o main0.out
+gcc main.c -Wall -Werror -Wl,-q -o main1.out
+gcc -S main.c -o main2.s -Wall -Werror -Wl,-q
+gcc main2.s -Wall -Werror -Wl,-q -o main2.out
+gcc main2.s -Wall -Werror -o main21.out
 
 # 相同, clang 好像也是用 ld 作为连接器,但是会出错,因为汇编阶段没有链接
 # clang-13: error: -Wl,-q: 'linker' input unused [-Werror,-Wunused-command-line-argument]
-clang -S main.c -o main.s -Wall -Werror -Wl,-q
+#clang -S main.c -o main.s -Wall -Werror -Wl,-q
 #
+clang main.c -Wall -Werror -o main3.out
+clang main.c -Wall -Werror -Wl,-q -o main4.out
+clang -S main.c -o main5.s
+clang main5.s -Wall -Werror -Wl,-q -o main5.out
+clang main5.s -Wall -Werror -o main51.out
+
+# 显示relo
+show_relo()
+{
+	echo "$1 - `readelf -r $1 | wc -l`"
+}
+
+show_relo main0.out
+show_relo main1.out
+show_relo main2.out
+show_relo main21.out
+show_relo main3.out
+show_relo main4.out
+show_relo main5.out
+show_relo main51.out
