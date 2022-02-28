@@ -14,11 +14,11 @@ gcc main.c -S -o main.0.s
 
 gcc main.c -S \
 	-fplugin=gcc-annobin \
-	-o main.2.s
+	-o main.2.fplugin.gcc-annobin.s
 
 gcc main.c -S \
 	-specs=/usr/lib/rpm/redhat/redhat-annobin-cc1 \
-	-o main.1.s
+	-o main.1.redhat-annobin-cc1.s
 
 
 
