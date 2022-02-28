@@ -1,6 +1,8 @@
+static int ret = 1024;
+
 int func1(void)
 {
-	return 1;
+	return ret;
 }
 
 int main(int argc, char *argv[])
