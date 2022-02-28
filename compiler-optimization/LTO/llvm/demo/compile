@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Clang
+clang -flto -c a.c -o a-clang.o        # <-- a.o is LLVM bitcode file
+clang -c main.c -o main-clang.o        # <-- main.o is native object file
+clang -flto a-clang.o main-clang.o -o main.clang.out   # <-- standard link command with -flto
+
+# Gcc
+# gcc 生成的 a-gcc.o 和 a-clang 文件格式都不一样
+gcc -flto=auto -c a.c -o a-gcc.o        # <-- a.o is LLVM bitcode file
+gcc -c main.c -o main-gcc.o        # <-- main.o is native object file
+gcc -flto=auto a-gcc.o main-gcc.o -o main.gcc.out   # <-- standard link command with -flto
