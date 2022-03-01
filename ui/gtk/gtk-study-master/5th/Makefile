@@ -1,11 +1,10 @@
 ## Created by Anjuta
 
- CC = gcc
- CFLAGS = -g -Wall
-
- INCFLAGS = 
- LDFLAGS = -Wl,-rpath,/usr/local/lib
- LIBS =$(shell pkg-config --cflags --libs gtk+-2.0 )
+CC = gcc
+CFLAGS = -g -Wall
+INCFLAGS = 
+LDFLAGS = -Wl,-rpath,/usr/local/lib
+LIBS =$(shell pkg-config --cflags --libs gtk+-2.0 )
 
 GTKFLAGS=-export-dynamic `pkg-config --cflags  `
 all: test
@@ -15,9 +14,9 @@ test: $(OBJECTS)
 
 
 
- clean:
-    rm -f *.o *.d
+clean:
+	rm -f *.o *.d test
 
- .PHONY: all
- .PHONY: count
- .PHONY: clean
+.PHONY: all
+.PHONY: count
+.PHONY: clean

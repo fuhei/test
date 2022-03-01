@@ -5,4 +5,4 @@ if [ $# -lt 1 ]; then
     exit
 fi
 
-gcc -o a $1 `pkg-config --libs --cflags gtk+-2.0`
+gcc $1 `pkg-config --libs --cflags gtk+-3.0`
