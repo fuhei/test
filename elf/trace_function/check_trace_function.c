@@ -34,7 +34,6 @@ int main()
 	
 	/*  */
 	GElf_Shdr *shdr = file_map + ehdr.e_shoff;
-	char *strtab = file_map + shdr[ehdr.e_shstrndx].sh_offset;
 	int nr_shnum = ehdr.e_shnum;
 	GElf_Shdr i_shdr;
 	int ent_size = 0;
