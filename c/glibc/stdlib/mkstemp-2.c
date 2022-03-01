@@ -8,4 +8,5 @@ int main()
     fd = mkstemp(template);
     printf("template = %s\n", template);
     close(fd);
+	unlink(template);
 }
