@@ -3,6 +3,8 @@
 
 int func2(void)
 {
+	static unsigned long i = 0;
+	printf("--- Child %d ---\n", i++);
 	return 'R';
 }
 
