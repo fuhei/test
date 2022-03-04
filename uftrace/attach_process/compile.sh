@@ -2,9 +2,13 @@
 
 set -e
 
-gcc test.c -pg  -o a.out
+gcc test.c -pg \
+	-pthread \
+	-lrt \
+	-o a.out
 gcc -Wall -Werror \
 	attach.c \
+	syscall.c \
 	elf_utils.c \
 	file_utils.c \
 	rbtree.c \
@@ -16,7 +20,11 @@ gcc -Wall -Werror \
 trap "pkill -9 a.out" SIGINT
 
 clear
-./a.out &
-#sleep 1
-./attach.out -p $(pidof a.out)
+
+if [ $# -lt 1 ]; then
+	./a.out &
+	./attach.out -p $(pidof a.out)
+else
+	./attach.out $*
+fi
 

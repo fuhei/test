@@ -45,6 +45,8 @@ struct vma_struct * alloc_vma(struct process *task)
     assert(vma && "alloc vma failed.");
     memset(vma, 0x00, sizeof(struct vma_struct));
 
+    vma->type = VMA_NONE;
+
     list_init(&vma->node);
 
     return vma;
@@ -124,7 +126,8 @@ void print_vma(struct vma_struct * vma)
         fprintf(stderr, "Invalide pointer.\n");
         return ;
     }
-    printf("%016lx-%016lx %6s %8lx %4x:%4x %8d %s\n",
+    printf("%10s: %016lx-%016lx %6s %8lx %4x:%4x %8d %s\n",
+            VMA_TYPE_NAME(vma->type),
             vma->start, vma->end, vma->perms, vma->offset,
             vma->maj, vma->min, vma->inode, vma->name_);
 }

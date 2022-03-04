@@ -19,24 +19,43 @@
 #include <libgen.h>
 #include <getopt.h>
 
+#include "util.h"
 #include "elf_utils.h"
 #include "maps.h"
 #include "process.h"
+
+
+static struct args_opts default_args_opts = {
+	.verbose_flag = -1,
+	.check_trace_func = true,
+};
+
+static struct option args_options[] =
+{
+	{"verbose",		no_argument,		&default_args_opts.verbose_flag,	1},
+	{"no-check-trace",	no_argument,	0,				2},
+	{"pid",			required_argument,	0,				'p'},
+	{"help",		no_argument,		0,				'h'},
+	{0,0,0,0},
+};
+
+static void usage_help(char *cmd)
+{
+	fprintf(stderr, "Usage: %s\n", cmd);
+	fprintf(stderr, " \n");
+	fprintf(stderr, " Options:\n");
+	fprintf(stderr, "  -p, --pid	specify a target pid.\n");
+	fprintf(stderr, " \n");
+	fprintf(stderr, " Other options:\n");
+	fprintf(stderr, "  --verbose	show detail.\n");
+	fprintf(stderr, "  --no-check-trace		Do not check trace function, like mcount(), default is CHECK.\n");
+	exit(1);
+}
 
 void sig_handler(int signum)
 {
 	exit(1);
 }
-
-static int verbose_flag = -1;
-static struct option args_options[] =
-{
-	{"verbose",		no_argument,		&verbose_flag,	1},
-	{"version",		required_argument,	0,				'v'},
-	{"pid",			required_argument,	0,				'p'},
-	{"help",		no_argument,		0,				'h'},
-	{0,0,0,0},
-};
 
 int main(int argc, char *argv[])
 {
@@ -49,25 +68,25 @@ int main(int argc, char *argv[])
 	while (1) {
         /* getopt_long stores the option index here. */
         int c, option_index = 0;
-        c = getopt_long (argc, argv, "v:hp:", args_options, &option_index);
+        c = getopt_long (argc, argv, "hp:", args_options, &option_index);
         if (c < 0) {
             break;
         }
 		switch (c) {
 		case 1:
-			verbose_flag = 1;
+			default_args_opts.verbose_flag = 1;
 			break;
-		case 'v':
-			//TODO
+		case 2:
+			default_args_opts.check_trace_func = false;
 			break;
 		case 'h':
-			//TODO
+			usage_help(argv[0]);
 			break;
 		case 'p':
 			pid = atoi(optarg);
 			break;
 		default:
-			//TODO;
+			usage_help(argv[0]);
         }
 	}
 	if (optind < argc) {
@@ -76,19 +95,19 @@ int main(int argc, char *argv[])
             printf ("%s ", argv[optind++]);
         putchar ('\n');
     }
-	if (verbose_flag == 1) {
+	if (default_args_opts.verbose_flag == 1) {
 		puts("verbose flag is set");
-	} else if(verbose_flag == 0) {
+	} else if(default_args_opts.verbose_flag == 0) {
 		puts("verbose flag is not set");
 	}
 
 	if (pid == 0) {
 		fprintf(stderr, "no set -p, --pid option\n");
-		exit(1);
+		usage_help(argv[0]);
 	}
 	signal(SIGINT, sig_handler);
 
-	ret = open_process(&test_p, pid);
+	ret = open_process(&test_p, pid, &default_args_opts);
 	if (ret != 0)
 		goto open_fail_return;
 

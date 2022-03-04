@@ -15,6 +15,7 @@
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <unistd.h>
+#include <libgen.h>
 
 #include "process.h"
 #include "maps.h"
@@ -55,6 +56,31 @@ static int __create_vmas(struct process *task)
 		vma->min = min;
 		vma->inode = inode;
 		strncpy(vma->name_, name_, sizeof(vma->name_));
+
+		if (!strcmp(name_, task->comm)) {
+			vma->type = VMA_SELF;
+		} else if (!strncmp(basename(name_), "libc", 4) ||
+			!strncmp(basename(name_), "libssp", 6)) {
+			vma->type = VMA_LIBC;
+		} else if (!strcmp(name_, "[heap]")) {
+			vma->type = VMA_HEAP;
+		} else if (!strncmp(basename(name_), "ld-linux", 8)) {
+			vma->type = VMA_LD;
+		} else if (!strcmp(name_, "[stack]")) {
+			vma->type = VMA_STACK;
+		} else if (!strcmp(name_, "[vvar]")) {
+			vma->type = VMA_VVAR;
+		} else if (!strcmp(name_, "[vdso]")) {
+			vma->type = VMA_VDSO;
+		} else if (!strcmp(name_, "[vsyscall]")) {
+			vma->type = VMA_VSYSCALL;
+		} else if (!strncmp(basename(name_), "lib", 3)) {
+			vma->type = VMA_LIB_DONT_KNOWN;
+		} else if (strlen(name_) == 0) {
+			vma->type = VMA_ANON;
+		} else {
+			vma->type = VMA_NONE;
+		}
 
         link_vma(task, vma);
 
@@ -131,7 +157,7 @@ int process_exist(pid_t pid)
     return -1;
 }
 
-int open_process(struct process *p, pid_t pid)
+int open_process(struct process *p, pid_t pid, struct args_opts *args)
 {
 	assert(p && "invalide process pointer.");
 	p->pid = pid;
@@ -145,7 +171,8 @@ int open_process(struct process *p, pid_t pid)
 		return -1;
 	}
 	__open_comm_elf(p);
-	if (check_elf_ftrace_function(p->elf_file.file_map) != 0) {
+	if (args->check_trace_func &&
+		check_elf_ftrace_function(p->elf_file.file_map) != 0) {
 		fprintf(stderr, "Process %d(%s) not support ftrace.\n"\
 						"Maybe compile source code with `-pg'.\n", p->pid, p->comm);
 		return -1;

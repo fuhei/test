@@ -38,11 +38,17 @@ struct process {
 
     char *comm;
 
+    union {
+        struct vma_struct *libc;
+        /* some times, libc-xxx.so is link to libssp.so.x. */
+        struct vma_struct *libssp;
+    };
+
     struct elf_file_struct elf_file;
 };
 
 int process_exist(pid_t pid);
-int open_process(struct process *p, pid_t pid);
+int open_process(struct process *p, pid_t pid, struct args_opts *args);
 int close_process(struct process *p);
 
 int process_attach(struct process *task);

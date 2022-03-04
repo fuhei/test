@@ -10,11 +10,33 @@
  */
 #pragma once
 
+#include <stdbool.h>
+
 #include "list.h"
 #include "process.h"
 #include "rbtree.h"
+#include "compiler.h"
 
 struct process;
+
+enum vma_type {
+    VMA_NONE,   /* None */
+    VMA_SELF,   /* /usr/bin/ls, ... */
+    VMA_LIBC,   /* /usr/lib64/libc.so.x */
+    VMA_HEAP,   /* [heap] */
+    VMA_LD,     /* /usr/lib64/ld-linux-xxxxx */
+    VMA_STACK,  /* [stack] */
+    VMA_VVAR,   /* [vvar] */
+    VMA_VDSO,   /* [vdso] */
+    VMA_VSYSCALL, /* [vsyscall] */
+    VMA_LIB_DONT_KNOWN, /* Unknown Library */
+    VMA_ANON,   /* No name */
+    VMA_TYPE_NUM,
+};
+#define VMA_TYPE_NAME(t) __VMA_TYPE_NAME[t]
+static const char __unused *__VMA_TYPE_NAME[] = {
+"Unknown", "Self", "libc", "heap", "ld", "stack", "vvar", "vDSO", "vsyscall", "UnknownLib", "Anon",  NULL
+};
 
 struct vma_struct {
     /**
@@ -23,6 +45,8 @@ struct vma_struct {
     unsigned long start, end, offset;
     unsigned int maj, min, inode;
     char perms[5], name_[256];
+
+    enum vma_type type;
 
     struct process *task;
     
@@ -38,6 +62,8 @@ struct vma_struct {
 
     char *content;
 };
+
+
 
 extern struct list_head maps_vma_list;
 
