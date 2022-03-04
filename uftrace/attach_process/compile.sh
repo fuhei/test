@@ -8,7 +8,7 @@ gcc test.c -pg \
 	-o a.out
 gcc -Wall -Werror \
 	attach.c \
-	syscall.c \
+	syscalls.c \
 	elf_utils.c \
 	file_utils.c \
 	rbtree.c \

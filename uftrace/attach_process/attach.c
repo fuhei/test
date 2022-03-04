@@ -49,6 +49,7 @@ static void usage_help(char *cmd)
 	fprintf(stderr, " Other options:\n");
 	fprintf(stderr, "  --verbose	show detail.\n");
 	fprintf(stderr, "  --no-check-trace		Do not check trace function, like mcount(), default is CHECK.\n");
+	fprintf(stderr, " \n");
 	exit(1);
 }
 

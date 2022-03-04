@@ -39,7 +39,7 @@ struct process {
     char *comm;
 
     union {
-        struct vma_struct *libc;
+        struct vma_struct *libc_base;
         /* some times, libc-xxx.so is link to libssp.so.x. */
         struct vma_struct *libssp;
     };

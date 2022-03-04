@@ -16,11 +16,25 @@
 #include <sys/user.h>
 #include <unistd.h>
 #include <libgen.h>
+#include <sys/mman.h>
 
 #include "process.h"
 #include "maps.h"
 #include "file_utils.h"
 
+static unsigned int __perms2prot(char *perms)
+{
+    unsigned int prot = 0; 
+
+	if (perms[0] == 'r') 
+		prot |= PROT_READ;
+	if (perms[1] == 'w') 
+		prot |= PROT_WRITE;
+	if (perms[2] == 'x') 
+		prot |= PROT_EXEC;
+	/* Ignore 'p'/'s' flag, we don't need it */
+	return prot;
+}
 
 static int __create_vmas(struct process *task)
 {
@@ -51,6 +65,7 @@ static int __create_vmas(struct process *task)
 		vma->start = start;
 		vma->end = end;
 		memcpy(vma->perms, perms, sizeof(vma->perms));
+		vma->prot = __perms2prot(perms);
 		vma->offset = offset;
 		vma->maj = maj;
 		vma->min = min;
@@ -62,6 +77,8 @@ static int __create_vmas(struct process *task)
 		} else if (!strncmp(basename(name_), "libc", 4) ||
 			!strncmp(basename(name_), "libssp", 6)) {
 			vma->type = VMA_LIBC;
+			if (!task->libc_base)
+				task->libc_base = vma;
 		} else if (!strcmp(name_, "[heap]")) {
 			vma->type = VMA_HEAP;
 		} else if (!strncmp(basename(name_), "ld-linux", 8)) {

@@ -45,6 +45,12 @@ struct vma_struct {
     unsigned long start, end, offset;
     unsigned int maj, min, inode;
     char perms[5], name_[256];
+#define PROT_FMT "%c%c%c"
+#define PROT_ARGS(p) \
+    (p & PROT_READ) ? 'r' : '-', \
+    (p & PROT_WRITE) ? 'w' : '-', \
+    (p & PROT_EXEC) ? 'e' : '-'
+    unsigned int prot; /* parse from char perms[5] */
 
     enum vma_type type;
 
