@@ -10,12 +10,19 @@
  */
 #pragma once
 
-#include <stdio.h>
 #include <gelf.h>
 
+struct elf_file_struct {
+    union {
+        GElf_Ehdr *ehdr;
+        void *file_map;
+    };
+    ssize_t file_len;
+
+};
 
 int check_elf_ehdr(GElf_Ehdr *ehdr);
-
+int check_elf_ftrace_function(void *elf_file_mmap);
 
 const char *elf_e_machine_string(GElf_Ehdr *ehdr);
 void print_elf_ehdr(GElf_Ehdr *ehdr);

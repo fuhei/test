@@ -17,43 +17,84 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <libgen.h>
+#include <getopt.h>
 
 #include "elf_utils.h"
 #include "maps.h"
 #include "process.h"
 
-const char *filename = "a.out";
-pid_t pid;
-
-
 void sig_handler(int signum)
 {
-	kill(pid, SIGINT);
 	exit(1);
 }
 
+static int verbose_flag = -1;
+static struct option args_options[] =
+{
+	{"verbose",		no_argument,		&verbose_flag,	1},
+	{"version",		required_argument,	0,				'v'},
+	{"pid",			required_argument,	0,				'p'},
+	{"help",		no_argument,		0,				'h'},
+	{0,0,0,0},
+};
 
 int main(int argc, char *argv[])
 {
-	struct vma_struct *ivma = NULL, *tmpvma;
+	int ret = -1;
+	pid_t pid = 0;
+	struct vma_struct *ivma = NULL;
 	struct process test_p;
 	
-	signal(SIGINT, sig_handler);
 
-	pid = fork();
-	if (pid == 0) { //Child
-		char *__argv[] = {
-			"-h", NULL
-		};
-		execv(filename, __argv);
+	while (1) {
+        /* getopt_long stores the option index here. */
+        int c, option_index = 0;
+        c = getopt_long (argc, argv, "v:hp:", args_options, &option_index);
+        if (c < 0) {
+            break;
+        }
+		switch (c) {
+		case 1:
+			verbose_flag = 1;
+			break;
+		case 'v':
+			//TODO
+			break;
+		case 'h':
+			//TODO
+			break;
+		case 'p':
+			pid = atoi(optarg);
+			break;
+		default:
+			//TODO;
+        }
+	}
+	if (optind < argc) {
+        printf ("non-option ARGV-elements: ");
+        while (optind < argc)
+            printf ("%s ", argv[optind++]);
+        putchar ('\n');
+    }
+	if (verbose_flag == 1) {
+		puts("verbose flag is set");
+	} else if(verbose_flag == 0) {
+		puts("verbose flag is not set");
 	}
 
-	usleep(300);
+	if (pid == 0) {
+		fprintf(stderr, "no set -p, --pid option\n");
+		exit(1);
+	}
+	signal(SIGINT, sig_handler);
 
-	/* parent */
+	ret = open_process(&test_p, pid);
+	if (ret != 0)
+		goto open_fail_return;
 
-	open_process(&test_p, pid);
-	process_attach(&test_p);
+	ret = process_attach(&test_p);
+	if (ret != 0)
+		goto attach_fail_return;
 
 	list_for_each_entry(ivma, &test_p.vmas, node) {
 		print_vma(ivma);
@@ -74,17 +115,26 @@ int main(int argc, char *argv[])
 		//print_elf_all_shdrs(buffer, ehdr);
 	}
 #endif
+
+#if 0
 	printf("----- rbtree -------\n");
-	rbtree_postorder_for_each_entry_safe(ivma, tmpvma, &test_p.vmas_rb, rb_node) {
+	struct rb_node *rnode;
+	for (rnode = rb_first(&test_p.vmas_rb); rnode; rnode = rb_next(rnode)) {
+		ivma = rb_entry(rnode, struct vma_struct, rb_node);
 		print_vma(ivma);
 	}
+#endif
 
-
+	usleep(100);
 	process_detach(&test_p);
 
 	while (1) {
 		sleep(1);
 	}
 
-	return 0;
+
+attach_fail_return:
+	close_process(&test_p);
+open_fail_return:
+	return ret;
 }

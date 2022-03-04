@@ -14,11 +14,14 @@
 #include <string.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
+#include <unistd.h>
 
 #include "process.h"
 #include "maps.h"
+#include "file_utils.h"
 
-static int create_vmas(struct process *task)
+
+static int __create_vmas(struct process *task)
 {
     if (!list_empty(&task->vmas)) {
 	    fprintf(stderr, "Already load vmas\n");
@@ -67,7 +70,7 @@ static int create_vmas(struct process *task)
     return 0;
 }
 
-static int load_vmas(struct process *task)
+static int __load_vmas(struct process *task)
 {
     int r;
 	struct vma_struct *vma = NULL;
@@ -83,12 +86,74 @@ static int load_vmas(struct process *task)
     return 0;
 }
 
+static int __get_comm(struct process *task)
+{
+    char path[128], realpath[128];
+    ssize_t ret; 
+
+    snprintf(path, sizeof(path), "/proc/%d/exe", task->pid);
+    ret = readlink(path, realpath, sizeof(realpath));                                                                           
+    if (ret < 0) 
+        return -1;
+    realpath[ret] = '\0';
+	task->comm = strdup(realpath);
+
+    return 0;
+}
+
+static int __open_comm_elf(struct process *task)
+{
+    int ret;
+    ret = mmap_file(task->comm, &task->elf_file.file_map, &task->elf_file.file_len);
+    if (ret != 0) {
+        fprintf(stderr, "Fail mmap file %s\n", task->comm);
+        return -1;
+    }
+	if (check_elf_ehdr(task->elf_file.file_map) != 0) {
+		munmap_file(task->elf_file.file_map, task->elf_file.file_len);
+		task->elf_file.file_map = NULL;
+		task->elf_file.file_len = 0;
+		return -1;
+	}
+
+    return 0;
+}
+
+int process_exist(pid_t pid)
+{
+    char proc_pid[] = "/proc/1234567890";
+	snprintf(proc_pid, sizeof(proc_pid), "/proc/%d", pid);
+	
+	if (access(proc_pid, F_OK) == 0) {
+		return 0;
+	}
+
+    return -1;
+}
+
 int open_process(struct process *p, pid_t pid)
 {
+	assert(p && "invalide process pointer.");
+	p->pid = pid;
+
+	if (process_exist(pid) != 0) {
+		fprintf(stderr, "process %d not exist.\n", pid);
+		return -1;
+	}
+	if (__get_comm(p) != 0) {
+		fprintf(stderr, "get %d comm failed.\n", pid);
+		return -1;
+	}
+	__open_comm_elf(p);
+	if (check_elf_ftrace_function(p->elf_file.file_map) != 0) {
+		fprintf(stderr, "Process %d(%s) not support ftrace.\n"\
+						"Maybe compile source code with `-pg'.\n", p->pid, p->comm);
+		return -1;
+	}
+
     list_init(&p->vmas);
     rb_init(&p->vmas_rb);
 
-	p->pid = pid;
 	p->memfd = open_pid_mem(p);
 	if (p->memfd <= 0) {
 		fprintf(stderr, "open %d mem failed.\n", p->pid);
@@ -115,14 +180,18 @@ int open_process(struct process *p, pid_t pid)
 		return -1;
 	}
 
-    create_vmas(p);
-    load_vmas(p);
+    __create_vmas(p);
+    __load_vmas(p);
+
 
 	return 0;
 }
 
 int close_process(struct process *p)
 {
+	if (p->elf_file.file_map && p->elf_file.file_len)
+		munmap_file(p->elf_file.file_map, p->elf_file.file_len);
+
     return 0;
 }
 
@@ -131,7 +200,7 @@ int process_attach(struct process *task)
 	long rv;
 	rv = ptrace(PTRACE_ATTACH, task->pid, NULL, NULL);
 	if (rv != 0) {
-		fprintf(stderr, "Attach %d failed.\n", task->pid);
+		fprintf(stderr, "Attach %d failed.(%s)\n", task->pid, task->comm);
 	}
     return rv;
 }
@@ -141,7 +210,7 @@ int process_detach(struct process *task)
 	long rv;
 	rv = ptrace(PTRACE_DETACH, task->pid, NULL, NULL);
 	if (rv != 0) {
-		fprintf(stderr, "Detach %d failed.\n", task->pid);
+		fprintf(stderr, "Detach %d failed.(%s)\n", task->pid, task->comm);
 	}
     return rv;
 }

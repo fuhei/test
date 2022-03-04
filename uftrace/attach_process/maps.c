@@ -39,7 +39,6 @@ int open_pid_mem(struct process *task)
     return memfd;
 }
 
-
 struct vma_struct * alloc_vma(struct process *task)
 {
     struct vma_struct *vma = malloc(sizeof(struct vma_struct));
@@ -61,7 +60,7 @@ int free_vma(struct process *task, struct vma_struct * vma)
     return 0;
 }
 
-static inline int __vma_rb_cmp(struct rb_node *node, unsigned long key) 
+static inline int __vma_rb_insert_cmp(struct rb_node *node, unsigned long key) 
 {
     struct vma_struct *vma = rb_entry(node, struct vma_struct, rb_node); 
     struct vma_struct *new = (struct vma_struct *)key;
@@ -74,29 +73,57 @@ static inline int __vma_rb_cmp(struct rb_node *node, unsigned long key)
     else if (vma->end <= new->start)
         return 1;
     
-    printf("------------------------------------\n");
-    print_vma(new);
+    assert(0 && "Try insert illegal vma.");
     return 0;
 }
 
 
 int link_vma(struct process *task, struct vma_struct *vma)
 {
+    vma->task = task;
     list_add(&vma->node, &task->vmas);
-    rb_insert_node(&task->vmas_rb, &vma->rb_node, __vma_rb_cmp, (unsigned long)vma);
+    rb_insert_node(&task->vmas_rb, &vma->rb_node, __vma_rb_insert_cmp, (unsigned long)vma);
 
     return 0;
 }
 
 int unlink_vma(struct process *task, struct vma_struct *vma)
 {
+    vma->task = NULL;
     list_del(&vma->node);
     rb_erase(&vma->rb_node, &task->vmas_rb);
     return 0;
 }
 
+static inline int __find_vma_cmp(struct rb_node *node, unsigned long vaddr) 
+{
+    struct vma_struct *vma = rb_entry(node, struct vma_struct, rb_node); 
+
+    if (vma->start > vaddr)
+        return -1;
+    else if (vma->start <= vaddr && vma->end > vaddr)
+        return 0;
+    else
+        return 1;
+}
+
+struct vma_struct *find_vma(struct process *task, unsigned long vaddr)
+{
+    struct rb_node * rnode = rb_search_node(&task->vmas_rb,
+                                __find_vma_cmp,
+                                vaddr);
+    if (rnode) {
+        return rb_entry(rnode, struct vma_struct, rb_node);
+    }
+    return NULL;
+}
+
 void print_vma(struct vma_struct * vma)
 {
+    if (!vma) {
+        fprintf(stderr, "Invalide pointer.\n");
+        return ;
+    }
     printf("%016lx-%016lx %6s %8lx %4x:%4x %8d %s\n",
             vma->start, vma->end, vma->perms, vma->offset,
             vma->maj, vma->min, vma->inode, vma->name_);

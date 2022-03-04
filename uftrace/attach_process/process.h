@@ -19,6 +19,7 @@
 
 #include "list.h"
 #include "rbtree.h"
+#include "elf_utils.h"
 
 struct process {
 	pid_t pid;
@@ -30,10 +31,17 @@ struct process {
      */
     struct list_head vmas;
 
+    /**
+     * Tree of struct vma_struct.rb_node
+     */
     struct rb_root vmas_rb;
+
+    char *comm;
+
+    struct elf_file_struct elf_file;
 };
 
-
+int process_exist(pid_t pid);
 int open_process(struct process *p, pid_t pid);
 int close_process(struct process *p);
 

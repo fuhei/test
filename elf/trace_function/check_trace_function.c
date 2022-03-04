@@ -27,6 +27,7 @@ int main()
 	int fd = open(filename, O_RDONLY);
 	fstat(fd, &stbuf);
 	void *file_map = mmap(NULL, stbuf.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+	close(fd);
 	memcpy(&ehdr, file_map, sizeof(ehdr));
 
 	/* 2. Check ELF format */
