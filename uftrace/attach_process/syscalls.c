@@ -25,7 +25,7 @@
 #include "compiler.h"
 
 
-# define SYSCALL_REGS_PREPARE(regs, nr, p1, p2, p3, p4, p5, p6)  \
+#define SYSCALL_REGS_PREPARE(regs, nr, p1, p2, p3, p4, p5, p6)  \
         regs.rax = (unsigned long)nr;   \
         regs.rdi = p1;  \
         regs.rsi = p2;  \
@@ -33,10 +33,9 @@
         regs.r10 = p4;  \
         regs.r8 = p5;   \
         regs.r9 = p6;   
-# define SYSCALL_RET(regs)   regs.rax
+#define SYSCALL_RET(regs)   regs.rax
 
-void copy_regs(struct user_regs_struct *dst,
-              struct user_regs_struct *src)
+void copy_regs(struct user_regs_struct *dst, struct user_regs_struct *src)
 {
 #define COPY_REG(x) dst->x = src->x
     COPY_REG(r15);
@@ -57,11 +56,6 @@ void copy_regs(struct user_regs_struct *dst,
 #undef COPY_REG
 }
 
-void print_user_regs_struct(struct user_regs_struct *regs)
-{
-    //TODO
-}
-
 int wait_for_stop(struct process *task, void *data)
 {
     int ret, status = 0, pid = (int)(uintptr_t)data ?: task->pid;
@@ -70,7 +64,6 @@ int wait_for_stop(struct process *task, void *data)
 
 	while (1) {
 		ret = ptrace(PTRACE_CONT, pid, NULL, (void *)(uintptr_t)status);
-        ldebug("PTRACE_CONT: ret = %d\n", ret);
 		if (ret < 0) {
             print_vma(task->libc_base);
 			lerror("ptrace(PTRACE_CONT, %d, ...) %s\n",
@@ -84,8 +77,6 @@ int wait_for_stop(struct process *task, void *data)
 			return -1;
 		}
 		if (WIFSTOPPED(status))  {
-            ldebug("WIFSTOPPED: %lx %lx %lx %lx\n",
-                status, WSTOPSIG(status), SIGSTOP, SIGTRAP);
 			if (WSTOPSIG(status) == SIGSTOP ||
 			    WSTOPSIG(status) == SIGTRAP) {
 				break;
@@ -120,8 +111,6 @@ remote_syscall(struct process *task, int nr,
     unsigned char orig_code[sizeof(__syscall)];
     unsigned long libc_base = task->libc_base->start;
 
-    print_vma(task->libc_base);
-
     /* 1. Get old register */
     ret = ptrace(PTRACE_GETREGS, task->pid, NULL, &old_regs);
     if (ret == -1) {
@@ -130,20 +119,10 @@ remote_syscall(struct process *task, int nr,
     }
 
     /* 2. Read original code from libc */
-    ret = pread(task->memfd, orig_code, sizeof(__syscall), libc_base);
-    if (ret <= 0) {
-        lerror("pread(%d, ...) failed\n", task->memfd);
-        return -1;
-    }
-    ldebug("%x %x %x\n", orig_code[0], orig_code[1], orig_code[2]);
-    ldebug("%x %x %x\n", __syscall[0], __syscall[1], __syscall[2]);
+    memcpy_from_remote(task, orig_code, libc_base, sizeof(__syscall));
 
     /* 3. Write syscall instruments to libc */
-    ret = pwrite(task->memfd, __syscall, sizeof(__syscall), libc_base);
-    if (ret <= 0) {
-        lerror("pwrite(%d, ...) failed\n", task->memfd);
-        goto poke_back;
-    }
+    memcpy_to_remote(task, libc_base, __syscall, sizeof(__syscall));
 
     /* 4.  */
     regs = old_regs;
@@ -180,24 +159,17 @@ remote_syscall(struct process *task, int nr,
     }
 
     syscall_regs = regs;
-    *res = syscall_regs.rax;
+    *res = SYSCALL_RET(syscall_regs);
 
 poke_back:
-    ret = pwrite(task->memfd, orig_code, sizeof(__syscall), libc_base);
-    if (ret <= 0) {
-        lerror("pwrite(%d, ...) failed\n", task->memfd);
-        return -1;
-    }
+    memcpy_to_remote(task, libc_base, orig_code, sizeof(__syscall));
     return ret;
 }
 
-unsigned long remote_mmap(struct process *task,
-                        unsigned long addr,
-                        size_t length,
-                        int prot,
-                        int flags,
-                        int fd,
-                        off_t offset)
+unsigned long
+remote_mmap(struct process *task,
+            unsigned long addr, size_t length, int prot, int flags,
+            int fd, off_t offset)
 {
     int ret;
     unsigned long result;
@@ -208,4 +180,23 @@ unsigned long remote_mmap(struct process *task,
         return 0;
     }
     return result;
+}
+
+int remote_munmap(struct process *task, unsigned long addr, size_t length)
+{
+    int ret;
+    unsigned long result;
+
+    ret = remote_syscall(task,
+            __NR_munmap, addr, length, 0, 0, 0, 0, &result);
+    if (ret < 0) {
+        return 0;
+    }
+    return result;
+}
+
+int remote_open(struct process *task, const char *pathname, int flags, mode_t mode)
+{
+    //TODO
+    return 0;
 }

@@ -135,7 +135,7 @@ static int __load_vmas(struct process *task)
 		}
 		vma->content = malloc(vma->end - vma->start);
 		assert(vma->content && "Malloc vma->content failed");
-		r = pread(task->memfd, vma->content, vma->end - vma->start, (off_t)vma->start);
+		r = memcpy_from_remote(task, vma->content, vma->start, vma->end - vma->start);
 		if (r <= 0) {
 			lerror("pread failed in %s.\n", vma->name_);
             return -1;
@@ -310,4 +310,28 @@ int process_detach(struct process *task)
 	task->running = true;
 	task->pid = 0;
     return rv;
+}
+
+int memcpy_from_remote(struct process *task,
+		void *dst, unsigned long remote_src, ssize_t size)
+{
+	int ret;
+	ret = pread(task->memfd, dst, size, remote_src);
+    if (ret <= 0) {
+        lerror("pread(%d, ...) failed\n", task->memfd);
+        return -1;
+    }
+	return ret;
+}
+
+int memcpy_to_remote(struct process *task,
+		unsigned long remote_dst, void *src, ssize_t size)
+{
+	int ret;
+	ret = pwrite(task->memfd, src, size, remote_dst);
+    if (ret <= 0) {
+        lerror("pwrite(%d, ...) failed\n", task->memfd);
+        return -1;
+    }
+	return ret;
 }

@@ -38,8 +38,14 @@ struct process {
      */
     struct rb_root vmas_rb;
 
+    /* Whole name of process, such as /usr/bin/ls */
     char *comm;
 
+    /**
+     * Use for:
+     * 1. storage custom instruments.
+     * ...
+     */
     union {
         struct vma_struct *libc_base;
         /* some times, libc-xxx.so is link to libssp.so.x. */
@@ -55,3 +61,8 @@ int close_process(struct process *p);
 
 int process_attach(struct process *task);
 int process_detach(struct process *task);
+
+int memcpy_from_remote(struct process *task,
+		void *dst, unsigned long remote_src, ssize_t size);
+int memcpy_to_remote(struct process *task,
+		unsigned long remote_dst, void *src, ssize_t size);

@@ -15,9 +15,6 @@
 
 unsigned long
 remote_mmap(struct process *task,
-            unsigned long addr,
-            size_t length,
-            int prot,
-            int flags,
-            int fd,
-            off_t offset);
+            unsigned long addr, size_t length, int prot, int flags,
+            int fd, off_t offset);
+int remote_munmap(struct process *task, unsigned long addr, size_t length);

@@ -152,11 +152,14 @@ int main(int argc, char *argv[])
 
 #if 1
 	unsigned long map_v;
+	ssize_t map_len = 8192;
+
 	map_v = remote_mmap(&test_p,
-				0UL, 8192*3,
+				0UL, map_len,
 				PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	ldebug("New mmap. %lx\n", map_v);
+	remote_munmap(&test_p, map_v, map_len);
 	sleep(3);
 
 	map_v = remote_mmap(&test_p,
@@ -164,6 +167,7 @@ int main(int argc, char *argv[])
 				PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	ldebug("New mmap. %lx\n", map_v);
+	remote_munmap(&test_p, map_v, map_len);
 #endif
 
 	usleep(100);

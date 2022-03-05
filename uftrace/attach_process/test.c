@@ -7,7 +7,7 @@ int func2(void)
 {
 	static unsigned long i = 0;
 	printf("--- Child %d ---\n", i++);
-	unsigned long size = 8192*3;
+	unsigned long size = 8192*2;
 	void *a = mmap(0UL, size,
 			PROT_READ | PROT_WRITE,
 			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
