@@ -18,3 +18,6 @@ remote_mmap(struct process *task,
             unsigned long addr, size_t length, int prot, int flags,
             int fd, off_t offset);
 int remote_munmap(struct process *task, unsigned long addr, size_t length);
+
+int remote_open(struct process *task, char *pathname, int flags, mode_t mode);
+int remote_close(struct process *task, int remote_fd);

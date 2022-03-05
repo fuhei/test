@@ -153,6 +153,7 @@ int main(int argc, char *argv[])
 #if 1
 	unsigned long map_v;
 	ssize_t map_len = 8192;
+	int __unused map_fd;
 
 	map_v = remote_mmap(&test_p,
 				0UL, map_len,
@@ -162,6 +163,9 @@ int main(int argc, char *argv[])
 	remote_munmap(&test_p, map_v, map_len);
 	sleep(3);
 
+	map_fd = remote_open(&test_p, "todo.txt", O_RDWR|O_CREAT|O_TRUNC, 0644);
+	ldebug("New open. %d\n", map_fd);
+	remote_close(&test_p, map_fd);
 	map_v = remote_mmap(&test_p,
 				0UL, 8192*3,
 				PROT_READ | PROT_WRITE,
