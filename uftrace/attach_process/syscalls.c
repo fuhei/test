@@ -139,29 +139,33 @@ remote_syscall(struct process *task, int nr,
             task->pid, strerror(errno));
     }
 
-    /* Run target process */
+    /* 7. Run target process */
     ret = wait_for_stop(task, NULL);
 	if (ret < 0) {
 		lerror("failed call to func\n");
 		goto poke_back;
 	}
 
+    /* 8. Get syscall return regs */
     ret = ptrace(PTRACE_GETREGS, task->pid, NULL, &regs);
     if (ret == -1) {
         lerror("ptrace(PTRACE_GETREGS, %d, ...) failed, %s\n",
             task->pid, strerror(errno));
     }
 
+    /* 9. Restorage original registers */
     ret = ptrace(PTRACE_SETREGS, task->pid, NULL, &old_regs);
     if (ret == -1) {
         lerror("ptrace(PTRACE_SETREGS, %d, ...) failed, %s\n",
             task->pid, strerror(errno));
     }
 
+    /* 10. Get return value */
     syscall_regs = regs;
     *res = SYSCALL_RET(syscall_regs);
 
 poke_back:
+    /* 11. Poke libc code back */
     memcpy_to_remote(task, libc_base, orig_code, sizeof(__syscall));
     return ret;
 }
