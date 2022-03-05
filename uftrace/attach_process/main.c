@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 {
 	int ret = -1;
 	pid_t pid = 0;
-	struct vma_struct *ivma = NULL;
+	struct vma_struct __unused *ivma = NULL;
 	struct process test_p;
 
 	while (1) {
@@ -119,9 +119,11 @@ int main(int argc, char *argv[])
 		goto attach_fail_return;
 	}
 
+#if 0
 	list_for_each_entry(ivma, &test_p.vmas, node) {
 		print_vma(ivma);
 	}
+#endif
 
 
 #if 0
@@ -154,14 +156,14 @@ int main(int argc, char *argv[])
 				0UL, 8192*3,
 				PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	printf("New mmap. %lx\n", map_v);
+	ldebug("New mmap. %lx\n", map_v);
 	sleep(3);
 
 	map_v = remote_mmap(&test_p,
 				0UL, 8192*3,
 				PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	printf("New mmap. %lx\n", map_v);
+	ldebug("New mmap. %lx\n", map_v);
 #endif
 
 	usleep(100);

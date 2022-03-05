@@ -80,7 +80,8 @@ static int __create_vmas(struct process *task)
 		} else if (!strncmp(basename(name_), "libc", 4) ||
 			!strncmp(basename(name_), "libssp", 6)) {
 			vma->type = VMA_LIBC;
-			if (!task->libc_base)
+			if (!task->libc_base &&
+				vma->prot & PROT_EXEC)
 				task->libc_base = vma;
 		} else if (!strcmp(name_, "[heap]")) {
 			vma->type = VMA_HEAP;

@@ -7,7 +7,7 @@ gcc test.c -pg \
 	-lrt \
 	-o a.out
 gcc -Wall -Werror -g -ggdb \
-	attach.c \
+	main.c \
 	syscalls.c \
 	elf_utils.c \
 	file_utils.c \
