@@ -9,5 +9,15 @@
  * 
  */
 
+#include <sys/mman.h>
+#include <sys/types.h>
 #include "process.h"
 
+unsigned long
+remote_mmap(struct process *task,
+            unsigned long addr,
+            size_t length,
+            int prot,
+            int flags,
+            int fd,
+            off_t offset);

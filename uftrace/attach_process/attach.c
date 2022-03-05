@@ -20,9 +20,11 @@
 #include <getopt.h>
 
 #include "util.h"
+#include "log.h"
 #include "elf_utils.h"
 #include "maps.h"
 #include "process.h"
+#include "syscalls.h"
 
 
 static struct args_opts default_args_opts = {
@@ -41,15 +43,15 @@ static struct option args_options[] =
 
 static void usage_help(char *cmd)
 {
-	fprintf(stderr, "Usage: %s\n", cmd);
-	fprintf(stderr, " \n");
-	fprintf(stderr, " Options:\n");
-	fprintf(stderr, "  -p, --pid	specify a target pid.\n");
-	fprintf(stderr, " \n");
-	fprintf(stderr, " Other options:\n");
-	fprintf(stderr, "  --verbose	show detail.\n");
-	fprintf(stderr, "  --no-check-trace		Do not check trace function, like mcount(), default is CHECK.\n");
-	fprintf(stderr, " \n");
+	lerror("Usage: %s\n", cmd);
+	lerror(" \n");
+	lerror(" Options:\n");
+	lerror("  -p, --pid	specify a target pid.\n");
+	lerror(" \n");
+	lerror(" Other options:\n");
+	lerror("  --verbose	show detail.\n");
+	lerror("  --no-check-trace		Do not check trace function, like mcount(), default is CHECK.\n");
+	lerror(" \n");
 	exit(1);
 }
 
@@ -64,7 +66,6 @@ int main(int argc, char *argv[])
 	pid_t pid = 0;
 	struct vma_struct *ivma = NULL;
 	struct process test_p;
-	
 
 	while (1) {
         /* getopt_long stores the option index here. */
@@ -103,7 +104,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (pid == 0) {
-		fprintf(stderr, "no set -p, --pid option\n");
+		lerror("no set -p, --pid option\n");
 		usage_help(argv[0]);
 	}
 	signal(SIGINT, sig_handler);
@@ -113,8 +114,10 @@ int main(int argc, char *argv[])
 		goto open_fail_return;
 
 	ret = process_attach(&test_p);
-	if (ret != 0)
+	if (ret != 0) {
+		lerror("attach %d failed, ret = %d\n", test_p.pid, ret);
 		goto attach_fail_return;
+	}
 
 	list_for_each_entry(ivma, &test_p.vmas, node) {
 		print_vma(ivma);
@@ -127,7 +130,7 @@ int main(int argc, char *argv[])
 		if (check_elf_ehdr(ehdr) == -1) {
 			continue;
 		}
-		fprintf(stderr, "%s is ELF.\n", ivma->name_);
+		lerror("%s is ELF.\n", ivma->name_);
 
 		print_elf_ehdr(ehdr);
 
@@ -143,6 +146,22 @@ int main(int argc, char *argv[])
 		ivma = rb_entry(rnode, struct vma_struct, rb_node);
 		print_vma(ivma);
 	}
+#endif
+
+#if 1
+	unsigned long map_v;
+	map_v = remote_mmap(&test_p,
+				0UL, 8192*3,
+				PROT_READ | PROT_WRITE,
+				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	printf("New mmap. %lx\n", map_v);
+	sleep(3);
+
+	map_v = remote_mmap(&test_p,
+				0UL, 8192*3,
+				PROT_READ | PROT_WRITE,
+				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	printf("New mmap. %lx\n", map_v);
 #endif
 
 	usleep(100);

@@ -63,5 +63,10 @@ int main()
         }
     }
 
+    sleep(3);
+    void *a = mmap(0UL, 8192*3,
+		PROT_READ | PROT_WRITE,
+		MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+
     return 0;
 }

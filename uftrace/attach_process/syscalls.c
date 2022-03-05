@@ -15,16 +15,20 @@
 #include <sys/user.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include "syscalls.h"
 #include "maps.h"
+#include "log.h"
 #include "compiler.h"
 
 static unsigned char __unused __callrax[] = {
     0xff, 0xd0, /* call *%rax */
     0xcc, /* int3 */
 };
-unsigned char syscall[] = {
+unsigned char __syscall[] = {
     0x0f, 0x05, /* syscall */
     0xcc, /* int3 */
 };
@@ -66,9 +70,51 @@ void print_user_regs_struct(struct user_regs_struct *regs)
     //TODO
 }
 
-int wait_for_stop()
+int wait_for_stop(struct process *task, void *data)
 {
+    int ret, status = 0, pid = (int)(uintptr_t)data ?: task->pid;
+    //siginfo_t siginfo;
+    //ptrace(PTRACE_GETSIGINFO, pid, 0, &siginfo);
 
+	while (1) {
+		ret = ptrace(PTRACE_CONT, pid, NULL, (void *)(uintptr_t)status);
+		if (ret < 0) {
+			lerror("ptrace(PTRACE_CONT, %d, ...) %s\n",
+                pid, strerror(ESRCH));
+#if 1
+            if (errno == ESRCH) {
+                /* tracee is dead, PTRACE_CONT return No such process */
+                ret = waitpid(pid, &status, __WALL | WNOHANG);
+                /* ret can still be 0 here! */
+            }
+			return -1;
+#else
+            continue;
+#endif
+		}
+
+		ret = waitpid(pid, &status, __WALL);
+		if (ret < 0) {
+			lerror("can't wait tracee %d\n", pid);
+			return -1;
+		}
+        printf("-------------------\n");
+		if (WIFSTOPPED(status))  {
+            break;
+            printf("-------------------0\n");
+			if (WSTOPSIG(status) == SIGSTOP ||
+			    WSTOPSIG(status) == SIGTRAP) {
+                printf("-------------------1\n");
+                
+				break;
+            }
+			status = WSTOPSIG(status);
+			continue;
+		}
+
+		status = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
+	}
+    return 0;
 }
 
 static int remote_syscall(struct process *task, int nr,
@@ -77,47 +123,78 @@ static int remote_syscall(struct process *task, int nr,
         unsigned long *res)
 {
     int ret;
-    struct user_regs_struct orig_regs, regs, my_regs;
+    struct user_regs_struct old_regs, regs, my_regs;
 
-    
     SYSCALL_REGS_PREPARE(my_regs, nr, arg1, arg2, arg3, arg4, arg5, arg6);
     
-    unsigned char orig_code[sizeof(syscall)];
+    unsigned char orig_code[sizeof(__syscall)];
     unsigned long libc_base = task->libc_base->start;
 
-
-    ret = ptrace(PTRACE_GETREGS, task->pid, NULL, &orig_regs);
+    /* 1. Get old register */
+    ret = ptrace(PTRACE_GETREGS, task->pid, NULL, &old_regs);
     if (ret == -1) {
-        fprintf(stderr, "ptrace(PTRACE_GETREGS, %d, ...) failed\n", task->pid);
+        lerror("ptrace(PTRACE_GETREGS, %d, ...) failed, %s\n",
+            task->pid, strerror(errno));
     }
 
-    ret = pread(task->memfd, &orig_code, sizeof(syscall), libc_base);
+    /* 2. Read original code from libc */
+    ret = pread(task->memfd, (void*)orig_code, sizeof(__syscall), libc_base);
     if (ret <= 0) {
-        fprintf(stderr, "pread(%d, ...) failed\n", task->memfd);
-        return -1;
-    }
-    ret = pwrite(task->memfd, syscall, sizeof(syscall), libc_base);
-    if (ret <= 0) {
-        fprintf(stderr, "pwrite(%d, ...) failed\n", task->memfd);
+        lerror("pread(%d, ...) failed\n", task->memfd);
         return -1;
     }
 
-    regs = orig_regs;
+    /* 3. Write syscall instruments to libc */
+    ret = pwrite(task->memfd, __syscall, sizeof(__syscall), libc_base);
+    if (ret <= 0) {
+        lerror("pwrite(%d, ...) failed\n", task->memfd);
+        goto poke_back;
+    }
+
+    /* 4.  */
+    regs = old_regs;
+
+    /* 5. Execute from syscall, see step 3. */
     regs.rsp = libc_base;
 
     copy_regs(&regs, &my_regs);
-    ret = ptrace(PTRACE_SETREGS, task->pid, NULL, &regs);
 
-    /* wait func, run target process */
+    /* 6. Set target process run from libc(syscall) */
+    ret = ptrace(PTRACE_SETREGS, task->pid, NULL, &regs);
+    if (ret == -1) {
+        lerror("ptrace(PTRACE_SETREGS, %d, ...) failed, %s\n",
+            task->pid, strerror(errno));
+    }
+
+    /* Run target process */
+    ret = wait_for_stop(task, NULL);
+	if (ret < 0) {
+		lerror("failed call to func\n");
+		goto poke_back;
+	}
 
     ret = ptrace(PTRACE_GETREGS, task->pid, NULL, &regs);
-    ret = ptrace(PTRACE_SETREGS, task->pid, NULL, &orig_regs);
-    
-    my_regs = regs;
+    if (ret == -1) {
+        lerror("ptrace(PTRACE_GETREGS, %d, ...) failed, %s\n",
+            task->pid, strerror(errno));
+    }
 
-    ret = pwrite(task->memfd, &orig_code, sizeof(syscall), libc_base);
-    //TODO
-    return 0;
+    ret = ptrace(PTRACE_SETREGS, task->pid, NULL, &old_regs);
+    if (ret == -1) {
+        lerror("ptrace(PTRACE_SETREGS, %d, ...) failed, %s\n",
+            task->pid, strerror(errno));
+    }
+
+    my_regs = regs;
+    *res = regs.rax;
+
+poke_back:
+    ret = pwrite(task->memfd, &orig_code, sizeof(__syscall), libc_base);
+    if (ret <= 0) {
+        lerror("pwrite(%d, ...) failed\n", task->memfd);
+        goto poke_back;
+    }
+    return ret;
 }
 
 unsigned long remote_mmap(struct process *task,
@@ -131,7 +208,8 @@ unsigned long remote_mmap(struct process *task,
     int ret;
     unsigned long result;
 
-    ret = remote_syscall(task, __NR_mmap, addr, length, prot, flags, fd, offset, &result);
+    ret = remote_syscall(task,
+            __NR_mmap, addr, length, prot, flags, fd, offset, &result);
     if (ret < 0) {
         return 0;
     }

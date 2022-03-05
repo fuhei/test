@@ -16,6 +16,7 @@
 #include <sys/types.h>
 
 #include "maps.h"
+#include "log.h"
 
 int open_pid_maps(struct process *task)
 {
@@ -23,7 +24,7 @@ int open_pid_maps(struct process *task)
 	snprintf(proc_child_maps, sizeof(proc_child_maps), "/proc/%d/maps", task->pid);
 	int mapsfd = open(proc_child_maps, O_RDONLY);
 	if (mapsfd <= 0) {
-		fprintf(stderr, "open %s failed.\n", proc_child_maps);
+		lerror("open %s failed.\n", proc_child_maps);
 	}
     return mapsfd;
 }
@@ -34,7 +35,7 @@ int open_pid_mem(struct process *task)
 	snprintf(proc_child_mem, sizeof(proc_child_mem), "/proc/%d/mem", task->pid);
 	int memfd = open(proc_child_mem, O_RDWR);
 	if (memfd <= 0) {
-		fprintf(stderr, "open %s failed.\n", proc_child_mem);
+		lerror("open %s failed.\n", proc_child_mem);
 	}
     return memfd;
 }
@@ -123,7 +124,7 @@ struct vma_struct *find_vma(struct process *task, unsigned long vaddr)
 void print_vma(struct vma_struct * vma)
 {
     if (!vma) {
-        fprintf(stderr, "Invalide pointer.\n");
+        lerror("Invalide pointer.\n");
         return ;
     }
     printf("%10s: %016lx-%016lx %6s %8lx %4x:%4x %8d %s\n",

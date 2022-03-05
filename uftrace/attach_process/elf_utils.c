@@ -17,6 +17,7 @@
 #include <errno.h>
 
 #include "util.h"
+#include "log.h"
 #include "elf_utils.h"
 #include "process.h"
 #include "compiler.h"
@@ -68,7 +69,7 @@ int check_elf_ftrace_function(void *elf_file_mmap)
         }
     }
     if (!dynsym_shdr) {
-        fprintf(stderr, "cannot find dynamic symbols.. skipping\n");
+        lerror("cannot find dynamic symbols.. skipping\n");
         return -1;
     }
 

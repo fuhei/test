@@ -6,7 +6,7 @@ gcc test.c -pg \
 	-pthread \
 	-lrt \
 	-o a.out
-gcc -Wall -Werror \
+gcc -Wall -Werror -g -ggdb \
 	attach.c \
 	syscalls.c \
 	elf_utils.c \
@@ -14,6 +14,7 @@ gcc -Wall -Werror \
 	rbtree.c \
 	maps.c \
 	process.c \
+	log.c \
 	-I. \
 	-o attach.out
 
@@ -23,6 +24,7 @@ clear
 
 if [ $# -lt 1 ]; then
 	./a.out &
+	echo ">>>>> Attach PID $(pidof a.out) <<<<<"
 	./attach.out -p $(pidof a.out)
 else
 	./attach.out $*

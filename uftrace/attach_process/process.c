@@ -11,15 +11,18 @@
 
 #include <malloc.h>
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 
 #include "process.h"
 #include "maps.h"
+#include "log.h"
 #include "file_utils.h"
 
 static unsigned int __perms2prot(char *perms)
@@ -39,7 +42,7 @@ static unsigned int __perms2prot(char *perms)
 static int __create_vmas(struct process *task)
 {
     if (!list_empty(&task->vmas)) {
-	    fprintf(stderr, "Already load vmas\n");
+	    lerror("Already load vmas\n");
         return -1;
     }
     do {
@@ -57,7 +60,7 @@ static int __create_vmas(struct process *task)
 			   &start, &end, perms, &offset,
 			   &maj, &min, &inode, name_);
 		if (r <= 0) {
-			fprintf(stderr, "sscanf failed.\n");
+			lerror("sscanf failed.\n");
             return -1;
 		}
 
@@ -101,13 +104,6 @@ static int __create_vmas(struct process *task)
 
         link_vma(task, vma);
 
-		vma->content = malloc(vma->end - vma->start);
-		assert(vma->content && "Malloc vma->content failed");
-		r = pread(task->memfd, vma->content, vma->end - vma->start, (off_t)vma->start);
-		if (r <= 0) {
-			fprintf(stderr, "pread failed in %s.\n", vma->name_);
-            return -1;
-		}
 	} while (1);
 
     return 0;
@@ -118,11 +114,29 @@ static int __load_vmas(struct process *task)
     int r;
 	struct vma_struct *vma = NULL;
     list_for_each_entry(vma, &task->vmas, node) {
+		/* filter */
+		switch (vma->type) {
+			case VMA_NONE:
+			case VMA_HEAP:
+			case VMA_LD:
+			case VMA_STACK:
+			case VMA_VVAR:
+			case VMA_VDSO:
+			case VMA_VSYSCALL:
+			case VMA_LIB_DONT_KNOWN:
+			case VMA_ANON:
+				vma->content = NULL;
+				continue;
+			case VMA_SELF:
+			case VMA_LIBC:
+			default:
+				break;
+		}
 		vma->content = malloc(vma->end - vma->start);
 		assert(vma->content && "Malloc vma->content failed");
 		r = pread(task->memfd, vma->content, vma->end - vma->start, (off_t)vma->start);
 		if (r <= 0) {
-			fprintf(stderr, "pread failed in %s.\n", vma->name_);
+			lerror("pread failed in %s.\n", vma->name_);
             return -1;
 		}
 	}
@@ -149,7 +163,7 @@ static int __open_comm_elf(struct process *task)
     int ret;
     ret = mmap_file(task->comm, &task->elf_file.file_map, &task->elf_file.file_len);
     if (ret != 0) {
-        fprintf(stderr, "Fail mmap file %s\n", task->comm);
+        lerror("Fail mmap file %s\n", task->comm);
         return -1;
     }
 	if (check_elf_ehdr(task->elf_file.file_map) != 0) {
@@ -180,17 +194,17 @@ int open_process(struct process *p, pid_t pid, struct args_opts *args)
 	p->pid = pid;
 
 	if (process_exist(pid) != 0) {
-		fprintf(stderr, "process %d not exist.\n", pid);
+		lerror("process %d not exist.\n", pid);
 		return -1;
 	}
 	if (__get_comm(p) != 0) {
-		fprintf(stderr, "get %d comm failed.\n", pid);
+		lerror("get %d comm failed.\n", pid);
 		return -1;
 	}
 	__open_comm_elf(p);
 	if (args->check_trace_func &&
 		check_elf_ftrace_function(p->elf_file.file_map) != 0) {
-		fprintf(stderr, "Process %d(%s) not support ftrace.\n"\
+		lerror("Process %d(%s) not support ftrace.\n"\
 						"Maybe compile source code with `-pg'.\n", p->pid, p->comm);
 		return -1;
 	}
@@ -200,13 +214,13 @@ int open_process(struct process *p, pid_t pid, struct args_opts *args)
 
 	p->memfd = open_pid_mem(p);
 	if (p->memfd <= 0) {
-		fprintf(stderr, "open %d mem failed.\n", p->pid);
+		lerror("open %d mem failed.\n", p->pid);
 		return -1;
 	}
 
 	p->mapsfd = open_pid_maps(p);
 	if (p->mapsfd <= 0) {
-		fprintf(stderr, "open %d maps failed.\n", p->pid);
+		lerror("open %d maps failed.\n", p->pid);
 		close(p->memfd);
 		return -1;
 	}
@@ -218,7 +232,7 @@ int open_process(struct process *p, pid_t pid, struct args_opts *args)
 	lseek(p->mapsfd, 0, SEEK_SET);
 	p->mapsfp = fdopen(p->mapsfd, "r");
 	if (p->mapsfp == NULL) {
-		fprintf(stderr, "fdopen %d failed.\n", p->mapsfd);
+		lerror("fdopen %d failed.\n", p->mapsfd);
 		close(p->memfd);
 		close(p->mapsfd);
 		return -1;
@@ -227,6 +241,7 @@ int open_process(struct process *p, pid_t pid, struct args_opts *args)
     __create_vmas(p);
     __load_vmas(p);
 
+	p->running = true;
 
 	return 0;
 }
@@ -241,12 +256,45 @@ int close_process(struct process *p)
 
 int process_attach(struct process *task)
 {
-	long rv;
-	rv = ptrace(PTRACE_ATTACH, task->pid, NULL, NULL);
-	if (rv != 0) {
-		fprintf(stderr, "Attach %d failed.(%s)\n", task->pid, task->comm);
+	int ret;
+	int status;
+	pid_t pid = task->pid;
+	ret = ptrace(PTRACE_ATTACH, task->pid, NULL, NULL);
+	if (ret != 0) {
+		lerror("Attach %d failed.(%s)\n", pid, task->comm);
+		return ret;
 	}
-    return rv;
+	do {
+		ret = waitpid(pid, &status, __WALL);
+		if (ret < 0) {
+			lerror("can't wait for pid %d\n", pid);
+			return -1;
+		}
+		ret = 0;
+
+		/* We are expecting SIGSTOP */
+		if (WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
+			break;
+
+		/* If we got SIGTRAP because we just got out of execve, wait
+		 * for the SIGSTOP
+		 */
+		if (WIFSTOPPED(status))
+			status = (WSTOPSIG(status) == SIGTRAP) ? 0 : WSTOPSIG(status);
+		else if (WIFSIGNALED(status))
+			/* Resend signal */
+			status = WTERMSIG(status);
+
+		ret = ptrace(PTRACE_CONT, pid, NULL, (void *)(uintptr_t)status);
+		if (ret < 0) {
+			lerror("can't cont tracee\n");
+			return -1;
+		}
+	} while (1);
+
+	task->running = false;
+
+    return ret;
 }
 
 int process_detach(struct process *task)
@@ -254,7 +302,11 @@ int process_detach(struct process *task)
 	long rv;
 	rv = ptrace(PTRACE_DETACH, task->pid, NULL, NULL);
 	if (rv != 0) {
-		fprintf(stderr, "Detach %d failed.(%s)\n", task->pid, task->comm);
+		lerror("Detach %d failed.(%s)\n", task->pid, task->comm);
+		return -errno;
 	}
+
+	task->running = true;
+	task->pid = 0;
     return rv;
 }

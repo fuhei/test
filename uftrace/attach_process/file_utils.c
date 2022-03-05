@@ -15,6 +15,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <errno.h>
+#include "log.h"
 
 int mmap_file(char *filename, void **pmap, ssize_t *plen)
 {
@@ -23,7 +24,7 @@ int mmap_file(char *filename, void **pmap, ssize_t *plen)
     
     fd = open(filename, O_RDONLY);
     if (fd <= 0) {
-        fprintf(stderr, "open %s failed, %s\n", filename, strerror(errno));
+        lerror("open %s failed, %s\n", filename, strerror(errno));
         return -1;
     }
     fstat(fd, &stat);

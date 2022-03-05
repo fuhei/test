@@ -26,6 +26,8 @@ struct process {
 	int memfd;
 	int mapsfd;
 	FILE *mapsfp;
+
+    bool running;
     /**
      * List of struct vma_struct.node
      */
