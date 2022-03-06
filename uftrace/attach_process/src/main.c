@@ -116,9 +116,14 @@ int main(int argc, char *argv[])
 		lerror("attach %d failed, ret = %d\n", test_p.pid, ret);
 		goto attach_fail_return;
 	}
-#if 0
+
+#if 1
 	test_syscall_mmap(&test_p);
+	test_maps_vma(&test_p);
+	test_elf(&test_p);
 #endif
+	
+
 	usleep(100);
 	process_detach(&test_p);
 

@@ -53,7 +53,6 @@ struct vma_struct * alloc_vma(struct process *task)
     return vma;
 }
 
-
 int free_vma(struct process *task, struct vma_struct * vma)
 {
     if (!vma)
@@ -79,7 +78,6 @@ static inline int __vma_rb_insert_cmp(struct rb_node *node, unsigned long key)
     assert(0 && "Try insert illegal vma.");
     return 0;
 }
-
 
 int link_vma(struct process *task, struct vma_struct *vma)
 {
@@ -147,19 +145,6 @@ int test_maps_vma(struct process *task)
 		print_vma(ivma);
 	}
 
-	list_for_each_entry(ivma, &task->vmas, node) {
-		GElf_Ehdr *ehdr = (GElf_Ehdr*)ivma->content;
-		if (check_elf_ehdr(ehdr) == -1) {
-			continue;
-		}
-		linfo("%s is ELF.\n", ivma->name_);
-
-		print_elf_ehdr(ehdr);
-
-		print_elf_all_phdrs(ivma->content, ehdr);
-		//print_elf_all_shdrs(buffer, ehdr);
-	}
-    
 	ldebug("----- rbtree -------\n");
 	struct rb_node *rnode;
 	for (rnode = rb_first(&task->vmas_rb); rnode; rnode = rb_next(rnode)) {

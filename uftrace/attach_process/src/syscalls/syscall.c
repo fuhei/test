@@ -36,6 +36,7 @@
         regs.r8 = p5;   \
         regs.r9 = p6;   
 #define SYSCALL_RET(regs)   regs.rax
+#define SYSCALL_IP(regs)    regs.rip
 
 void copy_regs(struct user_regs_struct *dst, struct user_regs_struct *src)
 {
@@ -95,7 +96,7 @@ int wait_for_stop(struct process *task, void *data)
     return 0;
 }
 
-static int
+int
 remote_syscall(struct process *task, int nr,
         unsigned long arg1, unsigned long arg2, unsigned long arg3,
         unsigned long arg4, unsigned long arg5, unsigned long arg6,
@@ -130,7 +131,7 @@ remote_syscall(struct process *task, int nr,
     regs = old_regs;
 
     /* 5. Execute from syscall, see step 3. */
-    regs.rip = libc_base;
+    SYSCALL_IP(regs) = libc_base;
 
     copy_regs(&regs, &syscall_regs);
 
@@ -172,145 +173,4 @@ poke_back:
     return ret;
 }
 
-unsigned long
-remote_mmap(struct process *task,
-            unsigned long addr, size_t length, int prot, int flags,
-            int fd, off_t offset)
-{
-    int ret;
-    unsigned long result;
 
-    ret = remote_syscall(task,
-            __NR_mmap, addr, length, prot, flags, fd, offset, &result);
-    if (ret < 0) {
-        return 0;
-    }
-    return result;
-}
-
-int remote_munmap(struct process *task, unsigned long addr, size_t length)
-{
-    int ret;
-    unsigned long result;
-
-    ret = remote_syscall(task,
-            __NR_munmap, addr, length, 0, 0, 0, 0, &result);
-    if (ret < 0) {
-        return 0;
-    }
-    return result;
-}
-
-/**
- * @brief Remote open(2)
- * 
- * @param task 
- * @param pathname 
- * @param flags 
- * @param mode 
- * @return int 
- */
-int remote_open(struct process *task, char *pathname, int flags, mode_t mode)
-{
-    char maybeislink[PATH_MAX], path[PATH_MAX];
-    int ret;
-    unsigned long result;
-
-    unsigned long remote_fileaddr;
-    ssize_t remote_filename_len = 0;
-
-    if (!(flags|O_CREAT)) {
-        ret = readlink(pathname, maybeislink, sizeof(maybeislink));                                                                           
-        if (ret < 0) {
-            lwarning("readlink(3) failed.\n");
-            return -1;
-        }
-        maybeislink[ret] = '\0';
-        if (!realpath(maybeislink, path)) {
-            lwarning("realpath(3) failed.\n");
-            return -1;
-        }
-        ldebug("%s -> %s -> %s\n", pathname, maybeislink, path);
-        pathname = path;
-    }
-    remote_filename_len = strlen(pathname) + 1;
-
-	remote_fileaddr = remote_mmap(task,
-				0UL, remote_filename_len,
-				PROT_READ | PROT_WRITE,
-				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-
-    memcpy_to_remote(task, remote_fileaddr, pathname, remote_filename_len);
-
-    ret = remote_syscall(task,
-            __NR_open, remote_fileaddr, flags, mode, 0, 0, 0, &result);
-    
-	remote_munmap(task, remote_fileaddr, remote_filename_len);
-
-    return result;
-}
-
-/**
- * @brief Remote close(2)
- * 
- * @param task 
- * @param remote_fd 
- * @return int 
- */
-int remote_close(struct process *task, int remote_fd)
-{
-    int ret;
-    unsigned long result;
-    ret = remote_syscall(task,
-            __NR_close, remote_fd, 0, 0, 0, 0, 0, &result);
-    if (ret < 0) {
-        return 0;
-    }
-    return result;
-}
-
-int remote_ftruncate(struct process *task, int remote_fd, off_t length)
-{
-    int ret;
-    unsigned long result;
-    ret = remote_syscall(task,
-            __NR_ftruncate, remote_fd, length, 0, 0, 0, 0, &result);
-    if (ret < 0) {
-        return 0;
-    }
-    return result;
-}
-
-int test_syscall_mmap(struct process *task)
-{
-    int ret = 0;
-	unsigned long map_v;
-	ssize_t map_len = 8192;
-	int __unused map_fd;
-
-	map_fd = remote_open(task, "todo.txt", O_RDWR|O_CREAT|O_TRUNC, 0644);
-    if (map_fd <= 0) {
-        lwarning("remote open failed.\n");
-        return -1;
-    }
-	ldebug("New open. %d\n", map_fd);
-	ret = remote_ftruncate(task, map_fd, map_len);
-    if (ret != 0) {
-        lwarning("remote ftruncate failed.\n");
-        goto close_ret;
-    }
-	map_v = remote_mmap(task,
-				0UL, map_len,
-				PROT_READ | PROT_WRITE,
-				MAP_PRIVATE, map_fd, 0);
-	ldebug("New mmap. %lx\n", map_v);
-
-	sleep(5);
-	ldebug("unmmap. %lx\n", map_v);
-	remote_munmap(task, map_v, map_len);
-
-close_ret:
-	remote_close(task, map_fd);
-
-    return 0;
-}

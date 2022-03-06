@@ -16,6 +16,12 @@
 
 int test_syscall_mmap(struct process *task);
 
+int
+remote_syscall(struct process *task, int nr,
+        unsigned long arg1, unsigned long arg2, unsigned long arg3,
+        unsigned long arg4, unsigned long arg5, unsigned long arg6,
+        unsigned long *res);
+
 unsigned long
 remote_mmap(struct process *task,
             unsigned long addr, size_t length, int prot, int flags,

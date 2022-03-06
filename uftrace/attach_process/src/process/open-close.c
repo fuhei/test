@@ -1,5 +1,5 @@
 /**
- * @file process.c
+ * @file open-close.c
  * @author Rong Tao (rongtao@cestc.cn)
  * @brief 
  * @version 0.1
@@ -255,83 +255,3 @@ int close_process(struct process *p)
     return 0;
 }
 
-int process_attach(struct process *task)
-{
-	int ret;
-	int status;
-	pid_t pid = task->pid;
-	ret = ptrace(PTRACE_ATTACH, task->pid, NULL, NULL);
-	if (ret != 0) {
-		lerror("Attach %d failed.(%s)\n", pid, task->comm);
-		return ret;
-	}
-	do {
-		ret = waitpid(pid, &status, __WALL);
-		if (ret < 0) {
-			lerror("can't wait for pid %d\n", pid);
-			return -1;
-		}
-		ret = 0;
-
-		/* We are expecting SIGSTOP */
-		if (WIFSTOPPED(status) && WSTOPSIG(status) == SIGSTOP)
-			break;
-
-		/* If we got SIGTRAP because we just got out of execve, wait
-		 * for the SIGSTOP
-		 */
-		if (WIFSTOPPED(status))
-			status = (WSTOPSIG(status) == SIGTRAP) ? 0 : WSTOPSIG(status);
-		else if (WIFSIGNALED(status))
-			/* Resend signal */
-			status = WTERMSIG(status);
-
-		ret = ptrace(PTRACE_CONT, pid, NULL, (void *)(uintptr_t)status);
-		if (ret < 0) {
-			lerror("can't cont tracee\n");
-			return -1;
-		}
-	} while (1);
-
-	task->running = false;
-
-    return ret;
-}
-
-int process_detach(struct process *task)
-{
-	long rv;
-	rv = ptrace(PTRACE_DETACH, task->pid, NULL, NULL);
-	if (rv != 0) {
-		lerror("Detach %d failed.(%s)\n", task->pid, task->comm);
-		return -errno;
-	}
-
-	task->running = true;
-	task->pid = 0;
-    return rv;
-}
-
-int memcpy_from_remote(struct process *task,
-		void *dst, unsigned long remote_src, ssize_t size)
-{
-	int ret;
-	ret = pread(task->memfd, dst, size, remote_src);
-    if (ret <= 0) {
-        lerror("pread(%d, ...) failed\n", task->memfd);
-        return -1;
-    }
-	return ret;
-}
-
-int memcpy_to_remote(struct process *task,
-		unsigned long remote_dst, void *src, ssize_t size)
-{
-	int ret;
-	ret = pwrite(task->memfd, src, size, remote_dst);
-    if (ret <= 0) {
-        lerror("pwrite(%d, ...) failed\n", task->memfd);
-        return -1;
-    }
-	return ret;
-}
