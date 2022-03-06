@@ -6,7 +6,7 @@
 int func2(void)
 {
 	static unsigned long i = 0;
-	printf("--- Child %ld ---\n", i++);
+	printf("--- Child %ld %p ---\n", i++, func2);
 	unsigned long size = 8192*2;
 	void *a = mmap(0UL, size,
 			PROT_READ | PROT_WRITE,
@@ -17,6 +17,7 @@ int func2(void)
 
 int func1(void)
 {
+	printf("func1: %p: ", func1);
 	return func2();
 }
 
