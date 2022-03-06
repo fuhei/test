@@ -180,7 +180,9 @@ const char * elf_p_type_string(GElf_Phdr *phdr)
     case PT_GNU_EH_FRAME: return "GCC .eh_frame_hdr segment";
     case PT_GNU_STACK: return "Indicates stack executability";
     case PT_GNU_RELRO: return "Read-only after relocation";
+#ifdef PT_GNU_PROPERTY
     case PT_GNU_PROPERTY: return "GNU property";
+#endif
     //case PT_LOSUNW: return "PT_LOSUNW";
     case PT_SUNWBSS: return "Sun Specific segment";
     case PT_SUNWSTACK: return "Stack segment";

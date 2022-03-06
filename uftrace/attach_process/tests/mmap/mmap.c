@@ -6,7 +6,7 @@
 int func2(void)
 {
 	static unsigned long i = 0;
-	printf("--- Child %d ---\n", i++);
+	printf("--- Child %ld ---\n", i++);
 	unsigned long size = 8192*2;
 	void *a = mmap(0UL, size,
 			PROT_READ | PROT_WRITE,
