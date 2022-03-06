@@ -268,3 +268,49 @@ int remote_close(struct process *task, int remote_fd)
     }
     return result;
 }
+
+int remote_ftruncate(struct process *task, int remote_fd, off_t length)
+{
+    int ret;
+    unsigned long result;
+    ret = remote_syscall(task,
+            __NR_ftruncate, remote_fd, length, 0, 0, 0, 0, &result);
+    if (ret < 0) {
+        return 0;
+    }
+    return result;
+}
+
+int test_syscall_mmap(struct process *task)
+{
+    int ret = 0;
+	unsigned long map_v;
+	ssize_t map_len = 8192;
+	int __unused map_fd;
+
+	map_fd = remote_open(task, "todo.txt", O_RDWR|O_CREAT|O_TRUNC, 0644);
+    if (map_fd <= 0) {
+        lwarning("remote open failed.\n");
+        return -1;
+    }
+	ldebug("New open. %d\n", map_fd);
+	ret = remote_ftruncate(task, map_fd, map_len);
+    if (ret != 0) {
+        lwarning("remote ftruncate failed.\n");
+        goto close_ret;
+    }
+	map_v = remote_mmap(task,
+				0UL, map_len,
+				PROT_READ | PROT_WRITE,
+				MAP_PRIVATE, map_fd, 0);
+	ldebug("New mmap. %lx\n", map_v);
+
+	sleep(5);
+	ldebug("unmmap. %lx\n", map_v);
+	remote_munmap(task, map_v, map_len);
+
+close_ret:
+	remote_close(task, map_fd);
+
+    return 0;
+}

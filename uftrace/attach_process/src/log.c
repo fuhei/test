@@ -49,3 +49,16 @@ _____log(int level, const char *file, const char *func, unsigned long int line, 
 
     return n;
 }
+
+int test_log(void)
+{
+	ldebug("debug %d\n", 1);
+	linfo("info %d\n", 1);
+	lnotice("notice %d\n", 1);
+	lwarning("warning %d\n", 1);
+	lerror("error %d\n", 1);
+	lcrit("crit %d\n", 1);
+	lalert("alert %d\n", 1);
+	lemerg("emerg %d\n", 1);
+    return 0;
+}

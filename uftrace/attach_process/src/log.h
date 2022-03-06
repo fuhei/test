@@ -20,20 +20,7 @@
 #define lalert(fmt...) _____log(LOG_ALERT, __FILE__, __func__, __LINE__, fmt)
 #define lemerg(fmt...) _____log(LOG_EMERG, __FILE__, __func__, __LINE__, fmt)
 
-#if TEST
-void log_test()
-{
-	ldebug("debug %d\n", 1);
-	linfo("info %d\n", 1);
-	lnotice("notice %d\n", 1);
-	lwarning("warning %d\n", 1);
-	lerror("error %d\n", 1);
-	lcrit("crit %d\n", 1);
-	lalert("alert %d\n", 1);
-	lemerg("emerg %d\n", 1);
-}
-#endif
-
 int
 _____log(int level, const char *file, const char *func, unsigned long int line, char *fmt, ...);
 
+int test_log(void);

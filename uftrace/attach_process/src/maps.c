@@ -132,3 +132,39 @@ void print_vma(struct vma_struct * vma)
             vma->start, vma->end, vma->perms, vma->offset,
             vma->maj, vma->min, vma->inode, vma->name_);
 }
+
+/**
+ * @brief Test vma list
+ * 
+ * @param task 
+ * @return int 
+ */
+int test_maps_vma(struct process *task)
+{
+	struct vma_struct __unused *ivma = NULL;
+
+	list_for_each_entry(ivma, &task->vmas, node) {
+		print_vma(ivma);
+	}
+
+	list_for_each_entry(ivma, &task->vmas, node) {
+		GElf_Ehdr *ehdr = (GElf_Ehdr*)ivma->content;
+		if (check_elf_ehdr(ehdr) == -1) {
+			continue;
+		}
+		linfo("%s is ELF.\n", ivma->name_);
+
+		print_elf_ehdr(ehdr);
+
+		print_elf_all_phdrs(ivma->content, ehdr);
+		//print_elf_all_shdrs(buffer, ehdr);
+	}
+    
+	ldebug("----- rbtree -------\n");
+	struct rb_node *rnode;
+	for (rnode = rb_first(&task->vmas_rb); rnode; rnode = rb_next(rnode)) {
+		ivma = rb_entry(rnode, struct vma_struct, rb_node);
+		print_vma(ivma);
+	}
+    return 0;
+}

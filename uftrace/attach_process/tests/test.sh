@@ -9,11 +9,10 @@ cmake ..
 make
 cd -
 
-clear
 
 if [ $# -lt 1 ]; then
 	echo ">>>>> Attach PID $(pidof mmap.out) <<<<<"
-	mmap/mmap.out
+	mmap/mmap.out &
 	../build/upatch -p $(pidof mmap.out)
 else
 	./build/upatch $*

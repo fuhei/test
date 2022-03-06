@@ -69,7 +69,7 @@ struct vma_struct {
     char *content;
 };
 
-
+int test_maps_vma(struct process *task);
 
 extern struct list_head maps_vma_list;
 

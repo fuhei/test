@@ -52,6 +52,9 @@ struct process {
         struct vma_struct *libssp;
     };
 
+    /**
+     * Storage COMM/EXE ELF file
+     */
     struct elf_file_struct elf_file;
 };
 

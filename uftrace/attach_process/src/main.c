@@ -26,7 +26,6 @@
 #include "process.h"
 #include "syscalls.h"
 
-
 static struct args_opts default_args_opts = {
 	.verbose_flag = -1,
 	.check_trace_func = true,
@@ -64,7 +63,6 @@ int main(int argc, char *argv[])
 {
 	int ret = -1;
 	pid_t pid = 0;
-	struct vma_struct __unused *ivma = NULL;
 	struct process test_p;
 
 	while (1) {
@@ -119,60 +117,8 @@ int main(int argc, char *argv[])
 		goto attach_fail_return;
 	}
 
-#if 0
-	list_for_each_entry(ivma, &test_p.vmas, node) {
-		print_vma(ivma);
-	}
-#endif
 
-
-#if 0
-	list_for_each_entry(ivma, &test_p.vmas, node) {
-		GElf_Ehdr *ehdr = (GElf_Ehdr*)ivma->content;
-		if (check_elf_ehdr(ehdr) == -1) {
-			continue;
-		}
-		lerror("%s is ELF.\n", ivma->name_);
-
-		print_elf_ehdr(ehdr);
-
-		print_elf_all_phdrs(ivma->content, ehdr);
-		//print_elf_all_shdrs(buffer, ehdr);
-	}
-#endif
-
-#if 0
-	printf("----- rbtree -------\n");
-	struct rb_node *rnode;
-	for (rnode = rb_first(&test_p.vmas_rb); rnode; rnode = rb_next(rnode)) {
-		ivma = rb_entry(rnode, struct vma_struct, rb_node);
-		print_vma(ivma);
-	}
-#endif
-
-#if 1
-	unsigned long map_v;
-	ssize_t map_len = 8192;
-	int __unused map_fd;
-
-	map_v = remote_mmap(&test_p,
-				0UL, map_len,
-				PROT_READ | PROT_WRITE,
-				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	ldebug("New mmap. %lx\n", map_v);
-	remote_munmap(&test_p, map_v, map_len);
-	sleep(3);
-
-	map_fd = remote_open(&test_p, "todo.txt", O_RDWR|O_CREAT|O_TRUNC, 0644);
-	ldebug("New open. %d\n", map_fd);
-	remote_close(&test_p, map_fd);
-	map_v = remote_mmap(&test_p,
-				0UL, 8192*3,
-				PROT_READ | PROT_WRITE,
-				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	ldebug("New mmap. %lx\n", map_v);
-	remote_munmap(&test_p, map_v, map_len);
-#endif
+	test_syscall_mmap(&test_p);
 
 	usleep(100);
 	process_detach(&test_p);
