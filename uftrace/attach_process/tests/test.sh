@@ -13,7 +13,7 @@ if [ $# -lt 1 ]; then
 	echo ">>>>> Attach PID $(pidof mmap.out) <<<<<"
 	mmap/mmap.out &
 	sleep 1
-	../build/pattach -p $(pidof mmap.out)
+	../build/pattach -p $(pidof mmap.out) -f func1
 else
 	../build/pattach $*
 fi

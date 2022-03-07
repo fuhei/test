@@ -24,15 +24,32 @@
 #include "compiler.h"
 
 
-void print_elf_all_shdrs(void *filemap, GElf_Ehdr *ehdr)
+char *elf_secname(GElf_Ehdr *ehdr, GElf_Shdr *s)
+{
+	GElf_Shdr *shdr = (void *)ehdr + ehdr->e_shoff;
+	char *str = (void *)ehdr + shdr[ehdr->e_shstrndx].sh_offset;
+
+	return str + s->sh_name;
+}
+
+static void __print_shdr(GElf_Shdr *shdr, void *arg)
+{
+    print_elf_shdr(shdr);
+}
+
+void elf_for_each_shdr(void *filemap, GElf_Ehdr *ehdr, void (*handler)(GElf_Shdr *shdr, void *arg), void *arg)
 {
     int i;
-    printf("\033[1;34m ----- ALL Elf_Shdr -----\033[m\n");
     for (i = 0; i < ehdr->e_shnum; i++) {
         GElf_Shdr *shdr = (GElf_Shdr*)(filemap + ehdr->e_shoff + i * ehdr->e_shentsize);
-        //printf(">> %ld\n", ehdr->e_shoff + i * ehdr->e_shentsize);
-        print_elf_shdr(shdr);
+        handler(shdr, arg);
     }
+}
+
+void print_elf_all_shdrs(void *filemap, GElf_Ehdr *ehdr)
+{
+    printf("\033[1;34m ----- ALL Elf_Shdr -----\033[m\n");
+    elf_for_each_shdr(filemap, ehdr, __print_shdr, NULL);
 }
 
 const char *elf_sh_name_string(GElf_Shdr *shdr)

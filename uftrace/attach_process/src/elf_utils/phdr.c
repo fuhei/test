@@ -53,16 +53,25 @@ const char * elf_p_type_string(GElf_Phdr *phdr)
     }
 }
 
+static void __print_phdr(GElf_Phdr *shdr, void *arg)
+{
+    print_elf_phdr(shdr);
+}
+
+void elf_for_each_phdr(void *filemap, GElf_Ehdr *ehdr, void (*handler)(GElf_Phdr *shdr, void *arg), void *arg)
+{
+    int i;
+    for (i = 0; i < ehdr->e_phnum; i++) {
+        GElf_Phdr *phdr = (GElf_Phdr*)(filemap + ehdr->e_phoff + i * ehdr->e_phentsize);
+        handler(phdr, arg);
+    }
+}
 
 void print_elf_all_phdrs(void *filemap, GElf_Ehdr *ehdr)
 {
-    int i;
     printf("\033[1;32m%-8s %-16s %-16s %-8s %-8s %-8s %-8s %s\033[m\n",
             "OFFSET", "VADDR", "PADDR", "FILESZ", "MEMSZ", "FLAGS", "ALIGN", "TYPE");
-    for (i = 0; i < ehdr->e_phnum; i++) {
-        GElf_Phdr *phdr = (GElf_Phdr*)(filemap + ehdr->e_phoff + i * ehdr->e_phentsize);
-        print_elf_phdr(phdr);
-    }
+    elf_for_each_phdr(filemap, ehdr, __print_phdr, NULL);
 }
 
 void print_elf_phdr(GElf_Phdr *phdr)
