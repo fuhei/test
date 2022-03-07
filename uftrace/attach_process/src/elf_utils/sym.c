@@ -25,7 +25,7 @@
 
 
 int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
-        void (*handler)(GElf_Shdr *shdr, GElf_Sym *sym, char *symname, void *arg), void *arg)
+        void (*handler)(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg), void *arg)
 {
 	GElf_Shdr *shdr;
 	GElf_Sym *sym;
@@ -46,22 +46,23 @@ int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
 		lerror("No symtab in ELF.\n");
 		return -1;
 	}
-	
+
     sym = (void *)filemap + shdr[symidx].sh_offset;
 	strsym = (void *)filemap + shdr[shdr[symidx].sh_link].sh_offset;
 	for (i = 1; i < shdr[symidx].sh_size / sizeof(GElf_Sym); i++) {
 		GElf_Sym *isym = sym + i;
 		char *symname = strsym + isym->st_name;
         
-        handler(shdr, isym, symname, arg);
+        handler(shdr, sym, isym, symname, arg);
 	}
 
 	return 0;
 }
 
-static void __print_sym(GElf_Shdr *shdr, GElf_Sym *sym, char *symname, void *arg)
+static void __print_sym(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg)
 {
-	ldebug("symname = %s\n", symname);
+	if (strlen(symname) > 1)
+		ldebug("symname = %s\n", symname);
 	print_elf_sym(sym);
 }
 

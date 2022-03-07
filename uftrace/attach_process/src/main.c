@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 		goto attach_fail_return;
 	}
 
-#if 1
+#if 0
 	test_syscall_mmap(&test_p);
 	test_maps_vma(&test_p);
 	test_elf(&test_p);

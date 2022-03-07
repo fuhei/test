@@ -11,9 +11,18 @@
 #pragma once
 
 #include <gelf.h>
+#include "rbtree.h"
 
 struct process;
 
+struct elf_file_sym_struct {
+    GElf_Sym *sym;
+    char *symname;
+    /* Node of struct elf_file_struct.syms_rb */
+    struct rb_node sym_node;
+};
+
+/* For COMM ELF file */
 struct elf_file_struct {
     union {
         GElf_Ehdr *ehdr;
@@ -21,6 +30,9 @@ struct elf_file_struct {
     };
     ssize_t file_len;
 
+    GElf_Sym *symtab;
+    /* Root of struct elf_file_sym_struct.sym_node */
+    struct rb_root syms_rb;
 };
 
 int test_elf(struct process *task);
@@ -58,6 +70,6 @@ void print_elf_all_shdrs(void *filemap, GElf_Ehdr *ehdr);
 
 /* Sym */
 int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
-        void (*handler)(GElf_Shdr *shdr, GElf_Sym *sym, char *symname, void *arg), void *arg);
+        void (*handler)(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg), void *arg);
 void print_elf_sym(GElf_Sym *shm);
 void print_elf_all_syms(void *filemap, GElf_Ehdr *ehdr);
