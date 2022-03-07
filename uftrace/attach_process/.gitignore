@@ -1,5 +1,6 @@
-/.vscode
+.vscode
 *.out
+*.o
 upatch
 /build
 todo.test.dat
