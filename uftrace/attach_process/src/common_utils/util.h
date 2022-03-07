@@ -11,6 +11,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #ifndef offsetof
 #define offsetof(TYPE, MEMBER) ((unsigned long) &((TYPE*)0)->MEMBER)
@@ -28,5 +29,7 @@
 
 struct args_opts {
     int verbose_flag;
+    pid_t target_pid;
+    char *target_func;
     bool check_trace_func;
 };
