@@ -44,7 +44,7 @@ int test_elf(struct process *task)
 		//print_elf_ehdr(ehdr);
 
 		//print_elf_all_phdrs(ivma->content, ehdr);
-		print_elf_all_shdrs(ivma->content, ehdr);
+		print_elf_all_shdrs(ivma->task->elf_file.file_map, ehdr);
 	}
     
     return 0;

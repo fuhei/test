@@ -29,6 +29,8 @@ const char *elf_e_machine_string(GElf_Ehdr *ehdr);
 const char *elf_e_type_string(GElf_Ehdr *ehdr);
 const char *elf_p_type_string(GElf_Phdr *phdr);
 const char *elf_sh_name_string(GElf_Shdr *shdr);
+const char *elf_sh_type_string(GElf_Shdr *shdr);
+const char *elf_sh_flags_string(GElf_Shdr *shdr, void *buff, ssize_t buff_len);
 
 int check_elf_ehdr(GElf_Ehdr *ehdr);
 int check_elf_ftrace_function(void *elf_file_mmap);
