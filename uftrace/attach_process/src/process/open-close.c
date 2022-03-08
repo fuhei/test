@@ -160,39 +160,6 @@ static int __get_comm(struct process *task)
     return 0;
 }
 
-static int __sym_struct_rb_insert_cmp(struct rb_node *node, unsigned long key)
-{
-    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node); 
-    struct elf_file_sym_struct *new = (struct elf_file_sym_struct *)key;
-
-	return strcmp(sym_struct->symname, new->symname);
-}
-
-static void __insert_sym_to_rbtree(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg)
-{
-	struct process *task = (struct process *)arg;
-	struct elf_file_sym_struct *sym_struct;
-
-	/* Is enough? */
-	if (strlen(symname) <= 1)
-		return;
-
-	task->elf_file.symtab = symtab;
-	
-	sym_struct = malloc(sizeof(struct elf_file_sym_struct));
-	if (!sym_struct) {
-		lerror("Alloc sym_struct failed\n");
-		exit(1);
-	}
-
-	/* Fill */
-	sym_struct->sym = sym;
-	sym_struct->symname = symname;
-
-	rb_insert_node(&task->elf_file.syms_rb, &sym_struct->sym_node,
-		__sym_struct_rb_insert_cmp, (unsigned long)sym_struct);
-}
-
 static int __open_comm_elf(struct process *task)
 {
     int ret;
@@ -211,8 +178,7 @@ static int __open_comm_elf(struct process *task)
 	}
 
 	/* Rbtree of syms in COMM ELF */
-    rb_init(&task->elf_file.syms_rb);
-	elf_for_each_sym(task->elf_file.file_map, task->elf_file.ehdr, __insert_sym_to_rbtree, task);
+    elf_file_sym_rbtree_init(task);
 
     return 0;
 }

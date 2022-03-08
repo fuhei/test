@@ -192,7 +192,40 @@ int main(int argc, char *argv[])
 	test_maps_vma(&test_p);
 	test_elf(&test_p);
 #endif
+	test_elf(&test_p);
+
+#if 0
+	/**
+	 * @brief test ftrace trampoline
+	 * 
+	 */
+	struct elf_file_sym_struct *func_sym = elf_file_find_sym(&test_p, "func3");
+	struct elf_file_sym_struct *_trampoline = elf_file_find_sym(&test_p, "_trampoline");
+
+	if (!_trampoline || !func_sym) {
+		lerror("No find func_sym or _trampoline\n");
+		exit(1);
+	}
+	lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
+	lwarning("_trampoline: %16lx\n", _trampoline->sym->st_value);
+
+	union {
+		unsigned char call;
+		uint64_t func;
+	} __packed tramp = {
+		.call = 0xe8,
+		.func = _trampoline->sym->st_value,
+	};
+
+	struct vma_struct *func_vma = find_vma(&test_p, func_sym->sym->st_value);
+	ldebug("func_vma = %s, %ld\n", func_vma->name_, sizeof(_trampoline->sym->st_value));
+	struct vma_struct *trampoline_vma = find_vma(&test_p, _trampoline->sym->st_value);
+	ldebug("trampoline_vma = %s\n", trampoline_vma->name_);
+
 	
+	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &tramp, 1);
+
+#endif
 
 	usleep(100);
 	process_detach(&test_p);

@@ -3,10 +3,20 @@
 #include <sys/mman.h>
 #include <sys/types.h>
 
+int _trampoline(void)
+{
+	return printf("--- ftrace ---\n");
+}
+
+int func3()
+{
+	return printf("func3.\n");
+}
+
 int func2(void)
 {
 	static unsigned long i = 0;
-	printf("--- Child %ld func2: %p ---\n", i++, func2);
+	printf("--- Child %ld func2: %p func3: %p ---\n", i++, func2, func3);
 	unsigned long size = 8192*2;
 	void *a = mmap(0UL, size,
 			PROT_READ | PROT_WRITE,

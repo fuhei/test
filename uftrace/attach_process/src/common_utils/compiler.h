@@ -40,6 +40,7 @@
 # define restrict
 #endif
 
+#define __packed __attribute__((packed))
 #define __weak  __attribute__((weak))
 #define __visible_default  __attribute__((visibility("default")))
 #define __alias(func)  __attribute__((alias(#func)))

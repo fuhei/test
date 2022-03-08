@@ -15,6 +15,7 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <malloc.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "util.h"
@@ -61,9 +62,10 @@ int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
 
 static void __print_sym(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg)
 {
-	if (strlen(symname) > 1)
+	if (strlen(symname) > 1) {
 		ldebug("symname = %s\n", symname);
-	print_elf_sym(sym);
+		print_elf_sym(sym);
+	}
 }
 
 void print_elf_all_syms(void *filemap, GElf_Ehdr *ehdr)
@@ -71,8 +73,10 @@ void print_elf_all_syms(void *filemap, GElf_Ehdr *ehdr)
 	elf_for_each_sym(filemap, ehdr, __print_sym, NULL);
 }
 
-void print_elf_sym(GElf_Sym *shm)
+void print_elf_sym(GElf_Sym *sym)
 {
+	ldebug("	%8ld %4d %4d %4d %16lx %16ld\n",
+			sym->st_name, sym->st_info, sym->st_other, sym->st_shndx, sym->st_value, sym->st_size);
 	//TODO
 }
 
@@ -105,4 +109,68 @@ int elf_sym_count_undefined(void *filemap, GElf_Ehdr *ehdr)
 	}
 
 	return count;
+}
+
+static int __sym_struct_rb_insert_cmp_whole(struct rb_node *node, unsigned long key)
+{
+    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node); 
+    struct elf_file_sym_struct *new = (struct elf_file_sym_struct *)key;
+
+	return strcmp(sym_struct->symname, new->symname);
+}
+
+static int __sym_struct_rb_insert_cmp_symname(struct rb_node *node, unsigned long key)
+{
+    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node); 
+    char *symname = (char *)key;
+
+	return strcmp(sym_struct->symname, symname);
+}
+
+static void __insert_sym_to_rbtree(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg)
+{
+	struct process *task = (struct process *)arg;
+	struct elf_file_sym_struct *sym_struct;
+
+	/* Is enough? */
+	if (strlen(symname) <= 1)
+		return;
+
+	task->elf_file.symtab_shdr = shdr;
+	task->elf_file.symtab = symtab;
+	
+	sym_struct = malloc(sizeof(struct elf_file_sym_struct));
+	if (!sym_struct) {
+		lerror("Alloc sym_struct failed\n");
+		exit(1);
+	}
+
+	/* Fill */
+	sym_struct->sym = sym;
+	sym_struct->symname = symname;
+
+	rb_insert_node(&task->elf_file.syms_rb, &sym_struct->sym_node,
+		__sym_struct_rb_insert_cmp_whole, (unsigned long)sym_struct);
+}
+
+int elf_file_sym_rbtree_init(struct process *task)
+{
+	/* Rbtree of syms in COMM ELF */
+    rb_init(&task->elf_file.syms_rb);
+	elf_for_each_sym(task->elf_file.file_map, task->elf_file.ehdr,
+		__insert_sym_to_rbtree, task);
+
+	return 0;
+}
+
+struct elf_file_sym_struct *
+elf_file_find_sym(struct process *task, char *symname)
+{
+	struct rb_node * rnode = rb_search_node(&task->elf_file.syms_rb,
+                                __sym_struct_rb_insert_cmp_symname,
+                                (unsigned long)symname);
+    if (rnode) {
+        return rb_entry(rnode, struct elf_file_sym_struct, sym_node);
+    }
+    return NULL;
 }
