@@ -64,7 +64,7 @@
 #define unlikely(x)  __builtin_expect(!!(x), 0)
 #endif
 
-// Forced inlining 
+// Forced inlining
 #ifndef force_inline
 #define force_inline __attribute__ ((__always_inline__))
 #endif

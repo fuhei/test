@@ -1,12 +1,12 @@
 /**
  * @file phdr.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-06
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <stdio.h>
 #include <fcntl.h>

@@ -1,12 +1,12 @@
 /**
  * @file test.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-07
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <malloc.h>
 #include <assert.h>
@@ -38,9 +38,9 @@ static void test_vma_rbtree(struct process *task)
 }
 /**
  * @brief Test vma list
- * 
- * @param task 
- * @return int 
+ *
+ * @param task
+ * @return int
  */
 int test_maps_vma(struct process *task)
 {

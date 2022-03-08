@@ -1,12 +1,12 @@
 /**
  * @file open-close.c
  * @author your name (you@domain.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-06
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <malloc.h>
 #include <assert.h>
@@ -28,12 +28,12 @@
 
 /**
  * @brief Remote open(2)
- * 
- * @param task 
- * @param pathname 
- * @param flags 
- * @param mode 
- * @return int 
+ *
+ * @param task
+ * @param pathname
+ * @param flags
+ * @param mode
+ * @return int
  */
 int remote_open(struct process *task, char *pathname, int flags, mode_t mode)
 {
@@ -45,7 +45,7 @@ int remote_open(struct process *task, char *pathname, int flags, mode_t mode)
     ssize_t remote_filename_len = 0;
 
     if (!(flags|O_CREAT)) {
-        ret = readlink(pathname, maybeislink, sizeof(maybeislink));                                                                           
+        ret = readlink(pathname, maybeislink, sizeof(maybeislink));
         if (ret < 0) {
             lwarning("readlink(3) failed.\n");
             return -1;
@@ -69,7 +69,7 @@ int remote_open(struct process *task, char *pathname, int flags, mode_t mode)
 
     ret = remote_syscall(task,
             __NR_open, remote_fileaddr, flags, mode, 0, 0, 0, &result);
-    
+
 	remote_munmap(task, remote_fileaddr, remote_filename_len);
 
     return result;
@@ -77,10 +77,10 @@ int remote_open(struct process *task, char *pathname, int flags, mode_t mode)
 
 /**
  * @brief Remote close(2)
- * 
- * @param task 
- * @param remote_fd 
- * @return int 
+ *
+ * @param task
+ * @param remote_fd
+ * @return int
  */
 int remote_close(struct process *task, int remote_fd)
 {

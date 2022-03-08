@@ -1,12 +1,12 @@
 /**
  * @file attach.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-03
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
 #if 0
 	/**
 	 * @brief test ftrace trampoline
-	 * 
+	 *
 	 */
 	struct elf_file_sym_struct *func_sym = elf_file_find_sym(&test_p, "func3");
 	struct elf_file_sym_struct *_trampoline = elf_file_find_sym(&test_p, "_trampoline");
@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
 	struct vma_struct *trampoline_vma = find_vma(&test_p, _trampoline->sym->st_value);
 	ldebug("trampoline_vma = %s\n", trampoline_vma->name_);
 
-	
+
 	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &tramp, 1);
 
 #endif

@@ -1,12 +1,12 @@
 /**
  * @file mmap.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-06
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <stdio.h>
 #include <fcntl.h>
@@ -21,7 +21,7 @@ int mmap_file(char *filename, void **pmap, ssize_t *plen)
 {
     struct stat stat;
     int fd;
-    
+
     fd = open(filename, O_RDONLY);
     if (fd <= 0) {
         lerror("open %s failed, %s\n", filename, strerror(errno));

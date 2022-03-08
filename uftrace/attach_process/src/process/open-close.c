@@ -1,12 +1,12 @@
 /**
  * @file open-close.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-03
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 
 #include <malloc.h>
@@ -28,13 +28,13 @@
 
 static unsigned int __perms2prot(char *perms)
 {
-    unsigned int prot = 0; 
+    unsigned int prot = 0;
 
-	if (perms[0] == 'r') 
+	if (perms[0] == 'r')
 		prot |= PROT_READ;
-	if (perms[1] == 'w') 
+	if (perms[1] == 'w')
 		prot |= PROT_WRITE;
-	if (perms[2] == 'x') 
+	if (perms[2] == 'x')
 		prot |= PROT_EXEC;
 	/* Ignore 'p'/'s' flag, we don't need it */
 	return prot;
@@ -148,11 +148,11 @@ static int __load_vmas(struct process *task)
 static int __get_comm(struct process *task)
 {
     char path[128], realpath[128];
-    ssize_t ret; 
+    ssize_t ret;
 
     snprintf(path, sizeof(path), "/proc/%d/exe", task->pid);
-    ret = readlink(path, realpath, sizeof(realpath));                                                                           
-    if (ret < 0) 
+    ret = readlink(path, realpath, sizeof(realpath));
+    if (ret < 0)
         return -1;
     realpath[ret] = '\0';
 	task->comm = strdup(realpath);
@@ -187,7 +187,7 @@ int process_exist(pid_t pid)
 {
     char proc_pid[] = "/proc/1234567890";
 	snprintf(proc_pid, sizeof(proc_pid), "/proc/%d", pid);
-	
+
 	if (access(proc_pid, F_OK) == 0) {
 		return 0;
 	}

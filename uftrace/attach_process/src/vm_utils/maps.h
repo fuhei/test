@@ -1,12 +1,12 @@
 /**
  * @file maps.h
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-03
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #pragma once
 
@@ -55,7 +55,7 @@ struct vma_struct {
     enum vma_type type;
 
     struct process *task;
-    
+
     /**
      * Node of struct process.vmas
      */

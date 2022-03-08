@@ -1,12 +1,12 @@
 /**
  * @file vma.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-07
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <malloc.h>
 #include <assert.h>
@@ -41,11 +41,11 @@ int free_vma(struct process *task, struct vma_struct * vma)
     return 0;
 }
 
-static inline int __vma_rb_insert_cmp(struct rb_node *node, unsigned long key) 
+static inline int __vma_rb_insert_cmp(struct rb_node *node, unsigned long key)
 {
-    struct vma_struct *vma = rb_entry(node, struct vma_struct, rb_node); 
+    struct vma_struct *vma = rb_entry(node, struct vma_struct, rb_node);
     struct vma_struct *new = (struct vma_struct *)key;
-    
+
     //TODO:
     if (new->end <= vma->start)
         return -1;
@@ -53,7 +53,7 @@ static inline int __vma_rb_insert_cmp(struct rb_node *node, unsigned long key)
         return 0;
     else if (vma->end <= new->start)
         return 1;
-    
+
     assert(0 && "Try insert illegal vma.");
     return 0;
 }
@@ -75,9 +75,9 @@ int unlink_vma(struct process *task, struct vma_struct *vma)
     return 0;
 }
 
-static inline int __find_vma_cmp(struct rb_node *node, unsigned long vaddr) 
+static inline int __find_vma_cmp(struct rb_node *node, unsigned long vaddr)
 {
-    struct vma_struct *vma = rb_entry(node, struct vma_struct, rb_node); 
+    struct vma_struct *vma = rb_entry(node, struct vma_struct, rb_node);
 
     if (vma->start > vaddr)
         return -1;

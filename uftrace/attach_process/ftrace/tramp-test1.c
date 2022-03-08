@@ -1,11 +1,11 @@
 #include <stdio.h>
 
-void ftrace_routinue(void) 
+void ftrace_routinue(void)
 {
     printf("..mytramp..\n");
 }
 
-extern void trampoline(void *); 
+extern void trampoline(void *);
 
 asm (
 "       .pushsection    .text, \"ax\", @progbits\n"

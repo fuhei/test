@@ -1,12 +1,12 @@
 /**
  * @file syscall.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-04
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <malloc.h>
 #include <assert.h>
@@ -34,7 +34,7 @@
         regs.rdx = p3;  \
         regs.r10 = p4;  \
         regs.r8 = p5;   \
-        regs.r9 = p6;   
+        regs.r9 = p6;
 #define SYSCALL_RET(regs)   regs.rax
 #define SYSCALL_IP(regs)    regs.rip
 
@@ -110,7 +110,7 @@ remote_syscall(struct process *task, int nr,
     };
 
     SYSCALL_REGS_PREPARE(syscall_regs, nr, arg1, arg2, arg3, arg4, arg5, arg6);
-    
+
     unsigned char orig_code[sizeof(__syscall)];
     unsigned long libc_base = task->libc_base->start;
 

@@ -1,12 +1,12 @@
 /**
  * @file ehdr.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-06
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <stdio.h>
 #include <fcntl.h>
@@ -25,8 +25,8 @@
 
 /**
  * @brief check ELF format
- * 
- * @param ehdr 
+ *
+ * @param ehdr
  * @return int 0 if ok, -1 if not ok
  */
 int check_elf_ehdr(GElf_Ehdr *ehdr)
@@ -76,8 +76,8 @@ const char *elf_e_machine_string(GElf_Ehdr *ehdr)
 
 /**
  * @brief print GElf_Ehdr
- * 
- * @param ehdr 
+ *
+ * @param ehdr
  */
 void print_elf_ehdr(GElf_Ehdr *ehdr)
 {

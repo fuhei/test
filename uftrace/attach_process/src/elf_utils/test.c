@@ -1,12 +1,12 @@
 /**
  * @file test.c
  * @author your name (you@domain.com)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-06
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <stdio.h>
 #include <fcntl.h>
@@ -46,6 +46,6 @@ int test_elf(struct process *task)
 		//print_elf_all_shdrs(ivma->task->elf_file.file_map, ehdr);
 		print_elf_all_syms(ivma->task->elf_file.file_map, ehdr);
 	}
-    
+
     return 0;
 }

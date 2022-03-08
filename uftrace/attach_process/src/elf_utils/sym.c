@@ -1,12 +1,12 @@
 /**
  * @file sym.c
  * @author Rong Tao (rongtao@cestc.cn)
- * @brief 
+ * @brief
  * @version 0.1
  * @date 2022-03-07
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #include <stdio.h>
 #include <fcntl.h>
@@ -53,7 +53,7 @@ int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
 	for (i = 1; i < shdr[symidx].sh_size / sizeof(GElf_Sym); i++) {
 		GElf_Sym *isym = sym + i;
 		char *symname = strsym + isym->st_name;
-        
+
         handler(shdr, sym, isym, symname, arg);
 	}
 
@@ -113,7 +113,7 @@ int elf_sym_count_undefined(void *filemap, GElf_Ehdr *ehdr)
 
 static int __sym_struct_rb_insert_cmp_whole(struct rb_node *node, unsigned long key)
 {
-    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node); 
+    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node);
     struct elf_file_sym_struct *new = (struct elf_file_sym_struct *)key;
 
 	return strcmp(sym_struct->symname, new->symname);
@@ -121,7 +121,7 @@ static int __sym_struct_rb_insert_cmp_whole(struct rb_node *node, unsigned long 
 
 static int __sym_struct_rb_insert_cmp_symname(struct rb_node *node, unsigned long key)
 {
-    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node); 
+    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node);
     char *symname = (char *)key;
 
 	return strcmp(sym_struct->symname, symname);
@@ -138,7 +138,7 @@ static void __insert_sym_to_rbtree(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *
 
 	task->elf_file.symtab_shdr = shdr;
 	task->elf_file.symtab = symtab;
-	
+
 	sym_struct = malloc(sizeof(struct elf_file_sym_struct));
 	if (!sym_struct) {
 		lerror("Alloc sym_struct failed\n");
