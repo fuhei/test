@@ -26,41 +26,14 @@
 #include "log.h"
 #include "compiler.h"
 
-
 #if defined(__x86_64__)
-# define SYSCALL_INSTR \
-		0x0f, 0x05, /* syscall */\
-		0xcc, /* int3 */
-# define SYSCALL_REGS_PREPARE(regs, nr, p1, p2, p3, p4, p5, p6)  \
-        regs.rax = (unsigned long)nr;   \
-        regs.rdi = p1;  \
-        regs.rsi = p2;  \
-        regs.rdx = p3;  \
-        regs.r10 = p4;  \
-        regs.r8 = p5;   \
-        regs.r9 = p6;
-# define SYSCALL_RET(regs)   regs.rax
-# define SYSCALL_IP(regs)    regs.rip
-
+#include "arch/x86_64/regs.h"
 #elif defined(__aarch64__)
-
-# define SYSCALL_INSTR \
-    0x01, 0x00, 0x00, 0xd4, /*0xd4000001 svc #0  = syscall*/\
-    0xa0, 0x00, 0x20, 0xd4, /*0xd42000a0 brk #5  = int3*/
-
-# define SYSCALL_REGS_PREPARE(_regs, nr, p1, p2, p3, p4, p5, p6)  \
-	_regs.regs[8] = (unsigned long)nr;   \
-	_regs.regs[0] = p1;  \
-	_regs.regs[1] = p2;  \
-	_regs.regs[2] = p3;  \
-	_regs.regs[3] = p4;  \
-	_regs.regs[4] = p5;  \
-	_regs.regs[5] = p6;
-# define SYSCALL_RET(_regs)   _regs.regs[0]
-# define SYSCALL_IP(_regs)    _regs.pc
+#include "arch/aarch64/regs.h"
 #endif
 
-void copy_regs(struct user_regs_struct *dst, struct user_regs_struct *src)
+
+static void copy_regs(struct user_regs_struct *dst, struct user_regs_struct *src)
 {
 #define COPY_REG(x) dst->x = src->x
 #if defined(__x86_64__)

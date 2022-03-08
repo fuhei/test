@@ -8,7 +8,13 @@
  * @copyright Copyright (c) 2022
  *
  */
+#pragma once
 
+#include "compiler.h"
 #include "process.h"
+
+#define FTRACE_SECTION  ".ftrace.addon"
+
+
 
 void test_ftrace(struct process *task);

@@ -25,11 +25,16 @@
 #include "syscalls.h"
 #include "patch.h"
 
+#if defined(__x86_64__)
+#include "arch/x86_64/instruments.h"
+#elif defined(__aarch64__)
+#include "arch/aarch64/instruments.h"
+#endif
+
 static void test_single_patch(struct process *task)
 {
-    /* 0xe9： jmp in x86 */
 	unsigned char orginal_code[5];
-	unsigned char code[] = {0xe9, 0xd8, 0xff, 0xff, 0xff};
+	unsigned char code[] = {INST_JMPQ, 0x00, 0x00, 0x00, 0x00};
     struct vma_struct *func_vma, *trampoline_vma;
     struct elf_file_sym_struct *func_sym, *_trampoline_sym;
 
@@ -43,7 +48,6 @@ static void test_single_patch(struct process *task)
 	lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
 	lwarning("_trampoline_sym: %16lx\n", _trampoline_sym->sym->st_value);
 
-	//
 	*(unsigned int *)(code + 1) = (unsigned int)(_trampoline_sym->sym->st_value - (func_sym->sym->st_value) - 5);
 
 	func_vma = find_vma(task, func_sym->sym->st_value);
