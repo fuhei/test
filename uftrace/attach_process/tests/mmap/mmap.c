@@ -5,7 +5,9 @@
 
 int _trampoline(void)
 {
-	return printf("--- ftrace ---\n");
+	int n = printf("\033[1;31m-I AM TRAMPOLINE-\033[m");
+	fflush(stdout);
+	return n;
 }
 
 asm (
@@ -32,12 +34,12 @@ int func3()
 
 int func2(void)
 {
-	return printf("func2: %p, (func3: %p), (_trampoline: %p)\n", func2, func3, _trampoline);
+	return printf("\033[1;32mfunc2: %p, (func3: %p), (_trampoline: %p)\033[m\n", func2, func3, _trampoline);
 }
 
 int func1(void)
 {
-	printf("func1: %p, ", func1);
+	printf("\033[1;33mfunc1: %p, \033[m", func1);
 	return func2();
 }
 
