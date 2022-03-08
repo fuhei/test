@@ -16,5 +16,10 @@
 #define FTRACE_SECTION  ".ftrace.addon"
 
 
+struct ftrace_metadata {
+
+};
+
+
 
 void test_ftrace(struct process *task);
