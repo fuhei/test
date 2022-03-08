@@ -8,3 +8,7 @@
  * @copyright Copyright (c) 2022
  *
  */
+
+#include "process.h"
+
+void test_ftrace(struct process *task);

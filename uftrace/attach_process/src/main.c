@@ -196,6 +196,7 @@ int main(int argc, char *argv[])
 #endif
 
 	test_patch(&test_p);
+	test_ftrace(&test_p);
 
 	usleep(100);
 	process_detach(&test_p);
