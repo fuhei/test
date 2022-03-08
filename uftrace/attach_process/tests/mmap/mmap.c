@@ -10,24 +10,18 @@ int _trampoline(void)
 
 int func3()
 {
+	_trampoline();
 	return printf("func3.\n");
 }
 
 int func2(void)
 {
-	static unsigned long i = 0;
-	printf("--- Child %ld func2: %p func3: %p ---\n", i++, func2, func3);
-	unsigned long size = 8192*2;
-	void *a = mmap(0UL, size,
-			PROT_READ | PROT_WRITE,
-			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-	munmap(a, size);
-	return 'R';
+	return printf("func2: %p, (func3: %p), (_trampoline: %p)\n", func2, func3, _trampoline);
 }
 
 int func1(void)
 {
-	printf("func1: %p: ", func1);
+	printf("func1: %p, ", func1);
 	return func2();
 }
 
@@ -38,6 +32,6 @@ int main(int argc, char *argv[])
 	sleep(2);
 	while (1) {
 		func1();
-		sleep(2);
+		sleep(1);
 	}
 }

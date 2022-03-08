@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 	 * @brief test ftrace trampoline
 	 *
 	 */
-	struct elf_file_sym_struct *func_sym = elf_file_find_sym(&test_p, "func3");
+	struct elf_file_sym_struct *func_sym = elf_file_find_sym(&test_p, "func2");
 	struct elf_file_sym_struct *_trampoline = elf_file_find_sym(&test_p, "_trampoline");
 
 	if (!_trampoline || !func_sym) {
@@ -209,21 +209,27 @@ int main(int argc, char *argv[])
 	lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
 	lwarning("_trampoline: %16lx\n", _trampoline->sym->st_value);
 
-	union {
-		unsigned char call;
-		uint32_t func;
-	} __packed __unused tramp = {
-		.call = 0xe8,
-		.func = _trampoline->sym->st_value,
-	};
+	//d8 ff ff ff
+	unsigned char code[] = {0xe9, 0xd8, 0xff, 0xff, 0xff};
+	*(unsigned int *)(code + 1) = (unsigned int)(_trampoline->sym->st_value - (func_sym->sym->st_value) - 5);
 
 	struct vma_struct *func_vma = find_vma(&test_p, func_sym->sym->st_value);
 	ldebug("func_vma = %s, %ld\n", func_vma->name_, sizeof(_trampoline->sym->st_value));
 	struct vma_struct *trampoline_vma = find_vma(&test_p, _trampoline->sym->st_value);
 	ldebug("trampoline_vma = %s\n", trampoline_vma->name_);
 
+	unsigned char orginal_code[5];
 
-	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &tramp, 5);
+	memcpy_from_remote(&test_p, &orginal_code, func_sym->sym->st_value + 4, sizeof(orginal_code));
+	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &code, sizeof(code));
+
+	ret = process_detach(&test_p);
+
+	sleep(5);
+	ret = process_attach(&test_p);
+
+	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &orginal_code, sizeof(code));
+
 
 #endif
 

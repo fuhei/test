@@ -15,6 +15,7 @@
 #include <sys/ptrace.h>
 #include <sys/user.h>
 #include <unistd.h>
+#include <errno.h>
 #include <libgen.h>
 #include <sys/mman.h>
 #include <sys/wait.h>
@@ -31,7 +32,7 @@ int process_attach(struct process *task)
 	pid_t pid = task->pid;
 	ret = ptrace(PTRACE_ATTACH, task->pid, NULL, NULL);
 	if (ret != 0) {
-		lerror("Attach %d failed.(%s)\n", pid, task->comm);
+		lerror("Attach %d failed.(%s), %s\n", pid, task->comm, strerror(errno));
 		return ret;
 	}
 	do {
@@ -72,11 +73,10 @@ int process_detach(struct process *task)
 	long rv;
 	rv = ptrace(PTRACE_DETACH, task->pid, NULL, NULL);
 	if (rv != 0) {
-		lerror("Detach %d failed.(%s)\n", task->pid, task->comm);
+		lerror("Detach %d failed.(%s), %s\n", task->pid, task->comm, strerror(errno));
 		return -errno;
 	}
 
 	task->running = true;
-	task->pid = 0;
     return rv;
 }
