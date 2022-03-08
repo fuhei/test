@@ -11,3 +11,10 @@
 
 #include "ftrace.h"
 
+char __unused __ftrace_data data[124];
+
+void __ftrace_text
+ftrace_trampoline(void)
+{
+    //TODO
+}

@@ -13,13 +13,16 @@
 #include "compiler.h"
 #include "process.h"
 
-#define FTRACE_SECTION  ".ftrace.addon"
+#define FTRACE_TEXT ".uftrace.text"
+#define FTRACE_DATA ".uftrace.data"
 
+#define __ftrace_text __section(FTRACE_TEXT)
+#define __ftrace_data __section(FTRACE_DATA)
 
 struct ftrace_metadata {
 
 };
 
-
+//TODO
 
 void test_ftrace(struct process *task);
