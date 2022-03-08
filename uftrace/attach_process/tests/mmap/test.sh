@@ -4,17 +4,17 @@ set -e
 
 trap "pkill -9 mmap.out" SIGINT
 
-cd ../build/
+cd ../../build/
 cmake ..
 make
 cd -
 
 if [ $# -lt 1 ]; then
 	echo ">>>>> Attach PID $(pidof mmap.out) <<<<<"
-	mmap/mmap.out &
+	./mmap.out &
 	sleep 1
-	../build/pattach -p $(pidof mmap.out) -f func1
+	../../build/pattach -p $(pidof mmap.out) -f func1
 else
-	../build/pattach $*
+	../../build/pattach $*
 fi
 
