@@ -27,7 +27,11 @@
 #include "compiler.h"
 
 
-#define SYSCALL_REGS_PREPARE(regs, nr, p1, p2, p3, p4, p5, p6)  \
+#if defined(__x86_64__)
+# define SYSCALL_INSTR \
+		0x0f, 0x05, /* syscall */\
+		0xcc, /* int3 */
+# define SYSCALL_REGS_PREPARE(regs, nr, p1, p2, p3, p4, p5, p6)  \
         regs.rax = (unsigned long)nr;   \
         regs.rdi = p1;  \
         regs.rsi = p2;  \
@@ -35,12 +39,31 @@
         regs.r10 = p4;  \
         regs.r8 = p5;   \
         regs.r9 = p6;
-#define SYSCALL_RET(regs)   regs.rax
-#define SYSCALL_IP(regs)    regs.rip
+# define SYSCALL_RET(regs)   regs.rax
+# define SYSCALL_IP(regs)    regs.rip
+
+#elif defined(__aarch64__)
+
+# define SYSCALL_INSTR \
+    0x01, 0x00, 0x00, 0xd4, /*0xd4000001 svc #0  = syscall*/\
+    0xa0, 0x00, 0x20, 0xd4, /*0xd42000a0 brk #5  = int3*/
+
+# define SYSCALL_REGS_PREPARE(_regs, nr, p1, p2, p3, p4, p5, p6)  \
+	_regs.regs[8] = (unsigned long)nr;   \
+	_regs.regs[0] = p1;  \
+	_regs.regs[1] = p2;  \
+	_regs.regs[2] = p3;  \
+	_regs.regs[3] = p4;  \
+	_regs.regs[4] = p5;  \
+	_regs.regs[5] = p6;
+# define SYSCALL_RET(_regs)   _regs.regs[0]
+# define SYSCALL_IP(_regs)    _regs.pc
+#endif
 
 void copy_regs(struct user_regs_struct *dst, struct user_regs_struct *src)
 {
 #define COPY_REG(x) dst->x = src->x
+#if defined(__x86_64__)
     COPY_REG(r15);
     COPY_REG(r14);
     COPY_REG(r13);
@@ -56,6 +79,31 @@ void copy_regs(struct user_regs_struct *dst, struct user_regs_struct *src)
     COPY_REG(rdx);
     COPY_REG(rsi);
     COPY_REG(rdi);
+#elif defined(__aarch64__)
+    COPY_REG(regs[0]);
+    COPY_REG(regs[1]);
+    COPY_REG(regs[2]);
+    COPY_REG(regs[3]);
+    COPY_REG(regs[4]);
+    COPY_REG(regs[5]);
+    COPY_REG(regs[8]);
+    COPY_REG(regs[29]);
+    COPY_REG(regs[9]);
+    COPY_REG(regs[10]);
+    COPY_REG(regs[11]);
+    COPY_REG(regs[12]);
+    COPY_REG(regs[13]);
+    COPY_REG(regs[14]);
+    COPY_REG(regs[15]);
+    COPY_REG(regs[16]);
+    COPY_REG(regs[17]);
+    COPY_REG(regs[18]);
+    COPY_REG(regs[19]);
+    COPY_REG(regs[20]);
+#else
+# error "Unsupport architecture"
+#endif
+
 #undef COPY_REG
 }
 
@@ -104,10 +152,7 @@ remote_syscall(struct process *task, int nr,
 {
     int ret;
     struct user_regs_struct old_regs, regs, __unused syscall_regs;
-    unsigned char __syscall[] = {
-        0x0f, 0x05, /* syscall */
-        0xcc, /* int3 */
-    };
+    unsigned char __syscall[] = {SYSCALL_INSTR};
 
     SYSCALL_REGS_PREPARE(syscall_regs, nr, arg1, arg2, arg3, arg4, arg5, arg6);
 

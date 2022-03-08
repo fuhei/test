@@ -60,17 +60,23 @@ int remote_open(struct process *task, char *pathname, int flags, mode_t mode)
     }
     remote_filename_len = strlen(pathname) + 1;
 
-	remote_fileaddr = remote_mmap(task,
+    remote_fileaddr = remote_mmap(task,
 				0UL, remote_filename_len,
 				PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
     memcpy_to_remote(task, remote_fileaddr, pathname, remote_filename_len);
 
+#if defined(__x86_64__)
     ret = remote_syscall(task,
             __NR_open, remote_fileaddr, flags, mode, 0, 0, 0, &result);
-
-	remote_munmap(task, remote_fileaddr, remote_filename_len);
+#elif defined(__aarch64__)
+    ret = remote_syscall(task,
+            __NR_openat, AT_FDCWD, remote_fileaddr, flags, mode, 0, 0, &result);
+#else
+# error "Error arch"
+#endif
+    remote_munmap(task, remote_fileaddr, remote_filename_len);
 
     return result;
 }

@@ -164,9 +164,11 @@ const char *elf_sh_flags_string(GElf_Shdr *shdr, void *buff, ssize_t buff_len)
     if (shdr->sh_flags & SHF_MASKPROC) {
         //TODO
     }
+#ifdef SHF_GNU_RETAIN
     /* Not to be GCed by linker.  */
     if (shdr->sh_flags & SHF_GNU_RETAIN)
         flags[32 - 1 - 21] = 'g';
+#endif
     /* Special ordering requirement(Solaris).  */
     if (shdr->sh_flags & SHF_ORDERED)
         flags[32 - 1 - 30] = 'o';
