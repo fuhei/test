@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 #endif
 	test_elf(&test_p);
 
-#if 0
+#if 1
 	/**
 	 * @brief test ftrace trampoline
 	 *
@@ -211,8 +211,8 @@ int main(int argc, char *argv[])
 
 	union {
 		unsigned char call;
-		uint64_t func;
-	} __packed tramp = {
+		uint32_t func;
+	} __packed __unused tramp = {
 		.call = 0xe8,
 		.func = _trampoline->sym->st_value,
 	};
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 	ldebug("trampoline_vma = %s\n", trampoline_vma->name_);
 
 
-	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &tramp, 1);
+	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &tramp, 5);
 
 #endif
 
