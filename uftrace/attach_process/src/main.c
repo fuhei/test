@@ -25,6 +25,8 @@
 #include "maps.h"
 #include "process.h"
 #include "syscalls.h"
+#include "ftrace.h"
+#include "patch.h"
 
 static struct args_opts default_args_opts = {
 	.verbose_flag = -1,
@@ -192,46 +194,8 @@ int main(int argc, char *argv[])
 	test_maps_vma(&test_p);
 	test_elf(&test_p);
 #endif
-	test_elf(&test_p);
 
-#if 1
-	/**
-	 * @brief test ftrace trampoline
-	 *
-	 */
-	struct elf_file_sym_struct *func_sym = elf_file_find_sym(&test_p, "func2");
-	struct elf_file_sym_struct *_trampoline = elf_file_find_sym(&test_p, "_trampoline");
-
-	if (!_trampoline || !func_sym) {
-		lerror("No find func_sym or _trampoline\n");
-		exit(1);
-	}
-	lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
-	lwarning("_trampoline: %16lx\n", _trampoline->sym->st_value);
-
-	//d8 ff ff ff
-	unsigned char code[] = {0xe9, 0xd8, 0xff, 0xff, 0xff};
-	*(unsigned int *)(code + 1) = (unsigned int)(_trampoline->sym->st_value - (func_sym->sym->st_value) - 5);
-
-	struct vma_struct *func_vma = find_vma(&test_p, func_sym->sym->st_value);
-	ldebug("func_vma = %s, %ld\n", func_vma->name_, sizeof(_trampoline->sym->st_value));
-	struct vma_struct *trampoline_vma = find_vma(&test_p, _trampoline->sym->st_value);
-	ldebug("trampoline_vma = %s\n", trampoline_vma->name_);
-
-	unsigned char orginal_code[5];
-
-	memcpy_from_remote(&test_p, &orginal_code, func_sym->sym->st_value + 4, sizeof(orginal_code));
-	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &code, sizeof(code));
-
-	ret = process_detach(&test_p);
-
-	sleep(5);
-	ret = process_attach(&test_p);
-
-	memcpy_to_remote(&test_p, func_sym->sym->st_value + 4, &orginal_code, sizeof(code));
-
-
-#endif
+	test_patch(&test_p);
 
 	usleep(100);
 	process_detach(&test_p);
