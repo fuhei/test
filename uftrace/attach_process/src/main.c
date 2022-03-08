@@ -193,10 +193,13 @@ int main(int argc, char *argv[])
 	test_syscall_mmap(&test_p);
 	test_maps_vma(&test_p);
 	test_elf(&test_p);
+
+	/* see tests/single-ftrace-upatch */
+	test_patch(&test_p);
+	/* see tests/single-ftrace-upatch */
+	test_ftrace(&test_p);
 #endif
 
-	test_patch(&test_p);
-	test_ftrace(&test_p);
 
 	usleep(100);
 	process_detach(&test_p);
