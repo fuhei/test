@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 		goto attach_fail_return;
 	}
 
-#if 1
+#if 0
 	/* Insert trampoline object */
 	if (default_args_opts.ftrace_object) {
 		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 		}
 		lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
 
-		*(unsigned int *)(code + 1) = (unsigned int)(0x7f0589f7d080 - (func_sym->sym->st_value) - 9);
+		*(unsigned int *)(code + 1) = (unsigned int)(0x40503c - (func_sym->sym->st_value) - 9);
 
 		/* Get original code */
 		memcpy_from_remote(task, &orginal_code, func_sym->sym->st_value + 4, sizeof(orginal_code));
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 	test_maps_vma(&test_p);
 	test_elf(&test_p);
 #endif
-#if 0
+#if 1
 	/* see tests/single-ftrace-upatch */
 	test_patch(&test_p);
 	/* see tests/single-ftrace-upatch */

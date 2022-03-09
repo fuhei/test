@@ -330,6 +330,7 @@ int ftrace_trampoline_object_relocate(struct process *task)
             __apply_rela((void*)ehdr, s);
         } else if (shdr->sh_type == SHT_REL) {
             //TODO
+			lerror("Not support yet.\n");
         }
     }
 
