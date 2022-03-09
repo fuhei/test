@@ -42,6 +42,7 @@ static struct option args_options[] =
 	{"no-check-trace",	no_argument,	0,				2},
 	{"ftrace-object",	required_argument, 0,			3},
 	{"target-function",	required_argument,	0,			'f'},
+	{"log-level",	required_argument,	0,				'l'},
 	{"pid",			required_argument,	0,				'p'},
 	{"help",		no_argument,		0,				'h'},
 	{0,0,0,0},
@@ -54,6 +55,9 @@ static void usage_help(char *cmd)
 	printf(" Options:\n");
 	printf("  -p, --pid	specify a target pid.\n");
 	printf("  -f, --target-function	specify a target function to trace.\n");
+	printf("  -l, --log-level	Log level, see /usr/include/syslog.h\n");
+	printf("			emerg(%d), alert(%d), crit(%d), err(%d), warn(%d), notice(%d), info(%d), debug(%d)\n",
+						LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG);
 	printf(" \n");
 	printf(" Other options:\n");
 	printf("  --verbose	show detail.\n");
@@ -96,6 +100,9 @@ int main(int argc, char *argv[])
 			break;
 		case 'f':
 			default_args_opts.target_func = strdup(optarg);
+			break;
+		case 'l':
+			set_log_level(atoi(optarg));
 			break;
 		case 'p':
 			pid = atoi(optarg);
@@ -142,8 +149,10 @@ int main(int argc, char *argv[])
 
 #if 1
 	/* Insert trampoline object */
-	ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
-	ftrace_trampoline_object_relocate(&test_p);
+	if (default_args_opts.ftrace_object) {
+		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
+		ftrace_trampoline_object_relocate(&test_p);
+	}
 #endif
 
 #if 0

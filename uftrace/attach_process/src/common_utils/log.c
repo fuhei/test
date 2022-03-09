@@ -26,12 +26,22 @@ static const char *level_prefix[] = {
       "[\033[1;35mDEBUG\033[m]",
 };
 
+static int log_level = LOG_WARNING;
+
+void set_log_level(int level)
+{
+    log_level = level;
+}
+
 int
 _____log(int level, const char *file, const char *func, unsigned long int line, char *fmt, ...)
 {
     int n = 0;
     FILE *fp = stdout;
     va_list va;
+
+    if (level > log_level)
+        return 0;
 
     if (level <= LOG_ERR)
         fp = stderr;

@@ -23,4 +23,6 @@
 int
 _____log(int level, const char *file, const char *func, unsigned long int line, char *fmt, ...);
 
+void set_log_level(int level);
+
 int test_log(void);
