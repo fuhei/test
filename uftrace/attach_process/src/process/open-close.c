@@ -101,16 +101,16 @@ static int __load_vmas(struct process *task)
 			case VMA_VSYSCALL:
 			case VMA_LIB_DONT_KNOWN:
 			case VMA_ANON:
-				vma->content = NULL;
+				vma->dup_remote_mem = NULL;
 				continue;
 			case VMA_SELF:
 			case VMA_LIBC:
 			default:
 				break;
 		}
-		vma->content = malloc(vma->end - vma->start);
-		assert(vma->content && "Malloc vma->content failed");
-		r = memcpy_from_remote(task, vma->content, vma->start, vma->end - vma->start);
+		vma->dup_remote_mem = malloc(vma->end - vma->start);
+		assert(vma->dup_remote_mem && "Malloc vma->dup_remote_mem failed");
+		r = memcpy_from_remote(task, vma->dup_remote_mem, vma->start, vma->end - vma->start);
 		if (r <= 0) {
 			lerror("pread failed in %s.\n", vma->name_);
             return -1;

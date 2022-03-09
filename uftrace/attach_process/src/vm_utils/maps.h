@@ -69,7 +69,7 @@ struct vma_struct {
      */
     struct rb_node rb_node;
 
-    char *content;
+    char *dup_remote_mem;
 };
 
 int test_maps_vma(struct process *task);

@@ -29,7 +29,7 @@ int test_elf(struct process *task)
 	struct vma_struct __unused *ivma = NULL;
 
 	list_for_each_entry(ivma, &task->vmas, node) {
-		GElf_Ehdr *ehdr = (GElf_Ehdr*)ivma->content;
+		GElf_Ehdr *ehdr = (GElf_Ehdr*)ivma->dup_remote_mem;
         if (!ehdr)
             continue;
 		if (check_elf_ehdr(ehdr) == -1) {
@@ -42,7 +42,7 @@ int test_elf(struct process *task)
 		linfo("%s is ELF.\n", ivma->name_);
 
 		print_elf_ehdr(ehdr);
-		print_elf_all_phdrs(ivma->content, ehdr);
+		print_elf_all_phdrs(ivma->dup_remote_mem, ehdr);
 		//print_elf_all_shdrs(ivma->task->elf_file.file_map, ehdr);
 		print_elf_all_syms(ivma->task->elf_file.file_map, ehdr);
 	}
