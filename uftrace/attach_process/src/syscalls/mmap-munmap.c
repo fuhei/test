@@ -55,3 +55,22 @@ int remote_munmap(struct process *task, unsigned long addr, size_t length)
     }
     return result;
 }
+
+unsigned long remote_malloc(struct process *task, size_t length)
+{
+	unsigned long remote_addr;
+    remote_addr = remote_mmap(task,
+				0UL, length,
+				PROT_READ | PROT_WRITE | PROT_EXEC,
+				MAP_PRIVATE, -1, 0);
+    if (remote_addr == (unsigned long)MAP_FAILED) {
+        lerror("Remote malloc failed, %d\n", remote_addr);
+        return 0UL;
+    }
+    return remote_addr;
+}
+
+int remote_free(struct process *task, unsigned long addr, size_t length)
+{
+    return remote_munmap(task, addr, length);
+}

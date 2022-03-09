@@ -25,3 +25,4 @@ void test_ftrace(struct process *task);
 
 
 int ftrace_insert_trampoline_object(struct process *task, char *objpath);
+int ftrace_trampoline_object_relocate(struct process *task);

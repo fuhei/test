@@ -28,6 +28,8 @@ remote_mmap(struct process *task,
             unsigned long addr, size_t length, int prot, int flags,
             int fd, off_t offset);
 int remote_munmap(struct process *task, unsigned long addr, size_t length);
+unsigned long remote_malloc(struct process *task, size_t length);
+int remote_free(struct process *task, unsigned long addr, size_t length);
 
 int remote_open(struct process *task, char *pathname, int flags, mode_t mode);
 int remote_close(struct process *task, int remote_fd);
@@ -35,3 +37,7 @@ int remote_close(struct process *task, int remote_fd);
 int remote_ftruncate(struct process *task, int remote_fd, off_t length);
 
 int remote_fstat(struct process *task, int remote_fd, struct stat *statbuf);
+
+int remote_prctl(struct process *task, int option, unsigned long arg2, unsigned long arg3,
+                 unsigned long arg4, unsigned long arg5);
+int remote_prctl_set_vma_anon_name(struct process *task, unsigned long start, unsigned long len, char *name);

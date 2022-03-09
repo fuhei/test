@@ -92,28 +92,29 @@ static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
 	return 0;
 }
 
-int remote_insert_object(struct process *task, char *objpath, enum vma_type type)
+int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum vma_type type)
 {
 	int ret = 0;
 	unsigned long remote_addr;
-	ssize_t map_len = 0;
+	ssize_t map_len = size;
 	int __unused remote_fd;
-    struct stat statbuf;
 	struct insert_arg handler_arg;
 	struct vma_struct *obj_vma = NULL;
 
-	remote_fd = remote_open(task, objpath, O_RDWR, 0644);
+	remote_fd = remote_open(task, objpath, O_RDWR|O_CREAT|O_TRUNC, 0644);
     if (remote_fd <= 0) {
         lwarning("remote open failed.\n");
         return -1;
     }
-    remote_fstat(task, remote_fd, &statbuf);
-    map_len = statbuf.st_size;
+
 	ret = remote_ftruncate(task, remote_fd, map_len);
     if (ret != 0) {
         lwarning("remote ftruncate failed.\n");
         goto close_ret;
     }
+	/**
+	 * 是否需要mmap，mmap不是很好的选择
+	 */
 	remote_addr = remote_mmap(task,
 				0UL, map_len,
 				PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -146,7 +147,11 @@ int remote_insert_object(struct process *task, char *objpath, enum vma_type type
 			break;
 		}
 
-		mmap_file(objpath, (void **)&obj_vma->obj_local_mmap, &obj_vma->obj_size);
+		char *obj = NULL;
+		mmap_file_rdonly(objpath, (void **)&obj, &obj_vma->obj_size);
+		obj_vma->obj_local = malloc(obj_vma->obj_size);
+		memcpy(obj_vma->obj_local, obj, obj_vma->obj_size);
+		munmap_file(obj, obj_vma->obj_size);
 	} else {
 		lerror("Insert object failed.\n");
 	}

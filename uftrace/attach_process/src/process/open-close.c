@@ -139,7 +139,7 @@ static int __open_comm_elf(struct process *task)
     int ret;
 
 	/* Mmap absolute path of comm, like /usr/bin/ls */
-    ret = mmap_file(task->comm, &task->elf_file.file_map, &task->elf_file.file_len);
+    ret = mmap_file_rdonly(task->comm, &task->elf_file.file_map, &task->elf_file.file_len);
     if (ret != 0) {
         lerror("Fail mmap file %s\n", task->comm);
         return -1;

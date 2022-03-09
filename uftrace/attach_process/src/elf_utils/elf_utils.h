@@ -74,8 +74,12 @@ int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
         void (*handler)(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg), void *arg);
 void print_elf_sym(GElf_Sym *shm);
 void print_elf_all_syms(void *filemap, GElf_Ehdr *ehdr);
+int is_undef_sym(GElf_Sym *sym);
 
     /* ELF file Sym */
 int elf_file_sym_rbtree_init(struct process *task);
 struct elf_file_sym_struct *
 elf_file_find_sym(struct process *task, char *symname);
+
+/* Rela */
+void print_elf_rela(GElf_Rela *rela);

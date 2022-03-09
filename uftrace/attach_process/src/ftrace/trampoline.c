@@ -22,6 +22,7 @@
 #include "util.h"
 #include "log.h"
 #include "elf_utils.h"
+#include "file_utils.h"
 #include "maps.h"
 #include "process.h"
 #include "syscalls.h"
@@ -32,5 +33,13 @@
 
 int ftrace_insert_trampoline_object(struct process *task, char *objpath)
 {
-    return remote_insert_object(task, objpath, VMA_FTRACE_TRAMPOLINE);
+    char objfile[512] = {0};
+    ssize_t size;
+
+    file_size(objpath, &size);
+
+    snprintf(objfile, sizeof(objfile), "/tmp/trampoline-%s.XXXXXX", basename(objpath));
+    file_mktemp(objfile);
+
+    return remote_insert_object(task, objfile, size, VMA_FTRACE_TRAMPOLINE);
 }

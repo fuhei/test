@@ -1,6 +1,6 @@
 /**
  * @file open-close.c
- * @author your name (you@domain.com)
+ * @author Rong Tao (rongtao@cestc.cn)
  * @brief
  * @version 0.1
  * @date 2022-03-06

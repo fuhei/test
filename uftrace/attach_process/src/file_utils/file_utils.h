@@ -10,5 +10,8 @@
  */
 #pragma once
 
-int mmap_file(char *filename, void **pmap, ssize_t *plen);
+int mmap_file_rdonly(char *filename, void **pmap, ssize_t *plen);
 int munmap_file(char *map, ssize_t len);
+
+int file_size(char *file, ssize_t *size);
+int file_mktemp(char *tmppath);

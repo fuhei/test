@@ -11,6 +11,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <sys/types.h>
 
 #include "list.h"
 #include "process.h"
@@ -73,7 +74,7 @@ struct vma_struct {
     char *dup_remote_mem;
 
     /* Local file mmap */
-    char *obj_local_mmap;
+    char *obj_local;
     ssize_t obj_size;
 };
 
@@ -86,7 +87,7 @@ unsigned int __perms2prot(char *perms);
 int open_pid_mem(struct process *task);
 int open_pid_maps(struct process *task);
 
-int remote_insert_object(struct process *task, char *objpath, enum vma_type type);
+int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum vma_type type);
 
 struct vma_struct * alloc_vma();
 int free_vma(struct vma_struct * vma);

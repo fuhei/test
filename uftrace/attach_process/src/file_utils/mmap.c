@@ -15,11 +15,12 @@
 #include <sys/mman.h>
 #include <string.h>
 #include <errno.h>
-#include "log.h"
 
-int mmap_file(char *filename, void **pmap, ssize_t *plen)
+#include "log.h"
+#include "file_utils.h"
+
+int mmap_file_rdonly(char *filename, void **pmap, ssize_t *plen)
 {
-    struct stat stat;
     int fd;
 
     fd = open(filename, O_RDONLY);
@@ -27,9 +28,8 @@ int mmap_file(char *filename, void **pmap, ssize_t *plen)
         lerror("open %s failed, %s\n", filename, strerror(errno));
         return -1;
     }
-    fstat(fd, &stat);
-    *plen = stat.st_size;
-    *pmap = mmap(NULL, stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    file_size(filename, plen);
+    *pmap = mmap(NULL, *plen, PROT_READ, MAP_PRIVATE, fd, 0);
     close(fd);
 
     if (*pmap == MAP_FAILED) {

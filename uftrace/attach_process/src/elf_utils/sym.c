@@ -80,6 +80,11 @@ void print_elf_sym(GElf_Sym *sym)
 	//TODO
 }
 
+int is_undef_sym(GElf_Sym *sym)
+{
+	return sym->st_shndx == SHN_UNDEF || sym->st_shndx >= SHN_LORESERVE;
+}
+
 
 int elf_sym_count_undefined(void *filemap, GElf_Ehdr *ehdr)
 {
