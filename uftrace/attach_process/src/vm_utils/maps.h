@@ -87,7 +87,7 @@ unsigned int __perms2prot(char *perms);
 int open_pid_mem(struct process *task);
 int open_pid_maps(struct process *task);
 
-int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum vma_type type);
+int remote_insert_object(struct process *task, char *objreal, char *objcopy, ssize_t size, enum vma_type type);
 
 struct vma_struct * alloc_vma();
 int free_vma(struct vma_struct * vma);

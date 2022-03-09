@@ -86,13 +86,15 @@ static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
 		/* Return */
 		i_arg->insert_vma = vma;
 
+		//print_vma(i_arg->insert_vma);
+
 		/* done for each */
 		return -1;
 	}
 	return 0;
 }
 
-int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum vma_type type)
+int remote_insert_object(struct process *task, char *objreal, char *objcopy, ssize_t size, enum vma_type type)
 {
 	int ret = 0;
 	unsigned long remote_addr;
@@ -101,7 +103,7 @@ int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum
 	struct insert_arg handler_arg;
 	struct vma_struct *obj_vma = NULL;
 
-	remote_fd = remote_open(task, objpath, O_RDWR|O_CREAT|O_TRUNC, 0644);
+	remote_fd = remote_open(task, objcopy, O_RDWR|O_CREAT|O_TRUNC, 0644);
     if (remote_fd <= 0) {
         lwarning("remote open failed.\n");
         return -1;
@@ -120,7 +122,7 @@ int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum
 				PROT_READ | PROT_WRITE | PROT_EXEC,
 				MAP_PRIVATE, remote_fd, 0);
     if (remote_addr == (unsigned long)MAP_FAILED) {
-        lerror("Remote map failed, %s\n", objpath);
+        lerror("Remote map failed, %s\n", objcopy);
         goto unmap_ret;
     }
 
@@ -137,24 +139,33 @@ int remote_insert_object(struct process *task, char *objpath, ssize_t size, enum
 	/* mmap new object file into vma */
 	if (handler_arg.insert_vma) {
 		obj_vma = handler_arg.insert_vma;
+
 		switch (type) {
-		case VMA_FTRACE_TRAMPOLINE:
-			task->ftrace_trampoline_obj = obj_vma;
-			break;
-		case VMA_PATCH_OBJ:
-			//TODO: maybe is link list
-		default:
-			break;
+			case VMA_FTRACE_TRAMPOLINE:
+				task->ftrace_trampoline_obj = obj_vma;
+				//print_vma(obj_vma);
+				char *obj = NULL;
+				mmap_file_rdonly(objreal, (void **)&obj, &obj_vma->obj_size);
+				obj_vma->obj_local = malloc(obj_vma->obj_size);
+				memcpy(obj_vma->obj_local, obj, obj_vma->obj_size);
+				munmap_file(obj, obj_vma->obj_size);
+				ldebug("OBJ name = %s, size = %d\n", obj_vma->name_, obj_vma->obj_size);
+				if (check_elf_ehdr((GElf_Ehdr *)obj_vma->obj_local)) {
+					lerror("Not ELF.\n", obj_vma->name_);
+					return -1;
+				}
+				break;
+			case VMA_PATCH_OBJ:
+				//TODO: maybe is link list
+			default:
+				break;
 		}
 
-		char *obj = NULL;
-		mmap_file_rdonly(objpath, (void **)&obj, &obj_vma->obj_size);
-		obj_vma->obj_local = malloc(obj_vma->obj_size);
-		memcpy(obj_vma->obj_local, obj, obj_vma->obj_size);
-		munmap_file(obj, obj_vma->obj_size);
 	} else {
 		lerror("Insert object failed.\n");
 	}
+
+	//test_maps_vma(task);
 
     return 0;
 

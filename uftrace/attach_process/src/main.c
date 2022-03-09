@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
 #if 1
 	/* Insert trampoline object */
 	ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
-	//ftrace_trampoline_object_relocate(&test_p);
+	ftrace_trampoline_object_relocate(&test_p);
 #endif
 
 #if 0
