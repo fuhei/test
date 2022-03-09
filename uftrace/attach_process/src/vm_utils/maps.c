@@ -47,13 +47,44 @@ int open_pid_mem(struct process *task)
     return memfd;
 }
 
-int remote_insert_object(struct process *task, char *objpath)
+struct insert_arg {
+	struct process *task;
+	unsigned long remote_addr;
+	enum vma_type vma_type;
+};
+
+static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
+{
+	struct insert_arg *i_arg = (struct insert_arg*)arg;
+	struct process *task = i_arg->task;
+	struct vma_struct *find = find_vma(task, tmpvma->start);
+	if (!find) {
+		struct vma_struct *vma = alloc_vma();
+
+		vma->start = tmpvma->start;
+		vma->end = tmpvma->end;
+		memcpy(vma->perms, tmpvma->perms, sizeof(vma->perms));
+		vma->prot = __perms2prot(tmpvma->perms);
+		vma->offset = tmpvma->offset;
+		vma->maj = tmpvma->maj;
+		vma->min = tmpvma->min;
+		vma->inode = tmpvma->inode;
+		strncpy(vma->name_, tmpvma->name_, sizeof(vma->name_));
+		vma->type = i_arg->vma_type;
+
+		link_vma(task, vma);
+	}
+	return 0;
+}
+
+int remote_insert_object(struct process *task, char *objpath, enum vma_type type)
 {
 	int ret = 0;
 	unsigned long remote_addr;
 	ssize_t map_len = 0;
 	int __unused remote_fd;
     struct stat statbuf;
+	struct insert_arg handler_arg;
 
 	remote_fd = remote_open(task, objpath, O_RDWR, 0644);
     if (remote_fd <= 0) {
@@ -75,6 +106,16 @@ int remote_insert_object(struct process *task, char *objpath)
         lerror("Remote map failed, %s\n", objpath);
         goto unmap_ret;
     }
+
+	handler_arg = (struct insert_arg) {
+		.task = task,
+		.remote_addr = remote_addr,
+		.vma_type = type,
+	};
+
+	/* Insert VMA */
+	for_each_maps_vma(task, __insert_vma_handler, (void*)&handler_arg);
+
     return 0;
 
 unmap_ret:

@@ -31,11 +31,14 @@ enum vma_type {
     VMA_VSYSCALL, /* [vsyscall] */
     VMA_LIB_DONT_KNOWN, /* Unknown Library */
     VMA_ANON,   /* No name */
+    VMA_FTRACE_TRAMPOLINE,  /* ftrace trampoline */
+    VMA_PATCH_OBJ, /* User space patch object file */
     VMA_TYPE_NUM,
 };
 #define VMA_TYPE_NAME(t) __VMA_TYPE_NAME[t]
 static const char __unused *__VMA_TYPE_NAME[] = {
-"Unknown", "Self", "libc", "heap", "ld", "stack", "vvar", "vDSO", "vsyscall", "UnknownLib", "Anon",  NULL
+"Unknown", "Self", "libc", "heap", "ld", "stack", "vvar", "vDSO", "vsyscall", "UnknownLib", "Anon",
+"Trampoline", "PatchObj", NULL
 };
 
 struct vma_struct {
@@ -71,20 +74,23 @@ struct vma_struct {
 
 int test_maps_vma(struct process *task);
 
-extern struct list_head maps_vma_list;
+//extern struct list_head maps_vma_list;
 
+unsigned int __perms2prot(char *perms);
 
 int open_pid_mem(struct process *task);
 int open_pid_maps(struct process *task);
 
-int remote_insert_object(struct process *task, char *objpath);
+int remote_insert_object(struct process *task, char *objpath, enum vma_type type);
 
-struct vma_struct * alloc_vma(struct process *task);
-int free_vma(struct process *task, struct vma_struct * vma);
+struct vma_struct * alloc_vma();
+int free_vma(struct vma_struct * vma);
+int link_vma(struct process *task, struct vma_struct *vma);
+int unlink_vma(struct process *task, struct vma_struct *vma);
+int for_each_maps_vma(struct process *task, int (*handler)(struct vma_struct * tmpvma, void *arg), void *arg);
+int for_each_process_vma(struct process *task, int (*handler)(struct vma_struct * vma, void *arg), void *arg);
 
 struct vma_struct *find_vma(struct process *task, unsigned long vaddr);
 
-int link_vma(struct process *task, struct vma_struct *vma);
-int unlink_vma(struct process *task, struct vma_struct *vma);
 
 void print_vma(struct vma_struct * vma);

@@ -7,13 +7,13 @@ int _trampoline(void)
 	return n;
 }
 
-extern void my_tramp(void);
+extern void ftrace_tramp(void);
 
 asm (
 "   .pushsection    .text, \"ax\", @progbits\n"
-"   .type       my_tramp, @function\n"
-"   .globl      my_tramp\n"
-"   my_tramp:"
+"   .type       ftrace_tramp, @function\n"
+"   .globl      ftrace_tramp\n"
+"   ftrace_tramp:"
 "   pushq %rbp\n"
 "   movq %rsp, %rbp\n"
 "   pushq %rdi\n"
@@ -21,11 +21,11 @@ asm (
 "   popq %rdi\n"
 "   leave\n"
 "   ret\n"
-"   .size       my_tramp, .-my_tramp\n"
+"   .size       ftrace_tramp, .-ftrace_tramp\n"
 "   .popsection\n"
 );
 
-int func3()
+int ___func3()
 {
 	_trampoline();
 	return printf("func3.\n");

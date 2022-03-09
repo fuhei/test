@@ -26,18 +26,51 @@
 #include "log.h"
 #include "file_utils.h"
 
-static unsigned int __perms2prot(char *perms)
+static int __create_vma_handler(struct vma_struct * tmpvma, void *arg)
 {
-    unsigned int prot = 0;
+	struct vma_struct *vma;
+	struct process *task = (struct process *)arg;
 
-	if (perms[0] == 'r')
-		prot |= PROT_READ;
-	if (perms[1] == 'w')
-		prot |= PROT_WRITE;
-	if (perms[2] == 'x')
-		prot |= PROT_EXEC;
-	/* Ignore 'p'/'s' flag, we don't need it */
-	return prot;
+	vma = alloc_vma();
+	vma->start = tmpvma->start;
+	vma->end = tmpvma->end;
+	memcpy(vma->perms, tmpvma->perms, sizeof(vma->perms));
+	vma->prot = __perms2prot(tmpvma->perms);
+	vma->offset = tmpvma->offset;
+	vma->maj = tmpvma->maj;
+	vma->min = tmpvma->min;
+	vma->inode = tmpvma->inode;
+	strncpy(vma->name_, tmpvma->name_, sizeof(vma->name_));
+
+	if (!strcmp(vma->name_, task->comm)) {
+		vma->type = VMA_SELF;
+	} else if (!strncmp(basename(vma->name_), "libc", 4) ||
+		!strncmp(basename(vma->name_), "libssp", 6)) {
+		vma->type = VMA_LIBC;
+		if (!task->libc_base &&
+			vma->prot & PROT_EXEC)
+			task->libc_base = vma;
+	} else if (!strcmp(vma->name_, "[heap]")) {
+		vma->type = VMA_HEAP;
+	} else if (!strncmp(basename(vma->name_), "ld-linux", 8)) {
+		vma->type = VMA_LD;
+	} else if (!strcmp(vma->name_, "[stack]")) {
+		vma->type = VMA_STACK;
+	} else if (!strcmp(vma->name_, "[vvar]")) {
+		vma->type = VMA_VVAR;
+	} else if (!strcmp(vma->name_, "[vdso]")) {
+		vma->type = VMA_VDSO;
+	} else if (!strcmp(vma->name_, "[vsyscall]")) {
+		vma->type = VMA_VSYSCALL;
+	} else if (!strncmp(basename(vma->name_), "lib", 3)) {
+		vma->type = VMA_LIB_DONT_KNOWN;
+	} else if (strlen(vma->name_) == 0) {
+		vma->type = VMA_ANON;
+	} else {
+		vma->type = VMA_NONE;
+	}
+	link_vma(task, vma);
+	return 0;
 }
 
 static int __create_vmas(struct process *task)
@@ -46,67 +79,8 @@ static int __create_vmas(struct process *task)
 	    lerror("Already load vmas\n");
         return -1;
     }
-    do {
-		unsigned long start, end, offset;
-		unsigned int maj, min, inode;
-		char perms[5], name_[256];
-		int r;
-		char line[1024];
-		struct vma_struct *vma;
 
-		if (!fgets(line, sizeof(line), task->mapsfp))
-			break;
-
-		r = sscanf(line, "%lx-%lx %s %lx %x:%x %d %255s",
-			   &start, &end, perms, &offset,
-			   &maj, &min, &inode, name_);
-		if (r <= 0) {
-			lerror("sscanf failed.\n");
-            return -1;
-		}
-
-		vma = alloc_vma(task);
-		vma->start = start;
-		vma->end = end;
-		memcpy(vma->perms, perms, sizeof(vma->perms));
-		vma->prot = __perms2prot(perms);
-		vma->offset = offset;
-		vma->maj = maj;
-		vma->min = min;
-		vma->inode = inode;
-		strncpy(vma->name_, name_, sizeof(vma->name_));
-
-		if (!strcmp(name_, task->comm)) {
-			vma->type = VMA_SELF;
-		} else if (!strncmp(basename(name_), "libc", 4) ||
-			!strncmp(basename(name_), "libssp", 6)) {
-			vma->type = VMA_LIBC;
-			if (!task->libc_base &&
-				vma->prot & PROT_EXEC)
-				task->libc_base = vma;
-		} else if (!strcmp(name_, "[heap]")) {
-			vma->type = VMA_HEAP;
-		} else if (!strncmp(basename(name_), "ld-linux", 8)) {
-			vma->type = VMA_LD;
-		} else if (!strcmp(name_, "[stack]")) {
-			vma->type = VMA_STACK;
-		} else if (!strcmp(name_, "[vvar]")) {
-			vma->type = VMA_VVAR;
-		} else if (!strcmp(name_, "[vdso]")) {
-			vma->type = VMA_VDSO;
-		} else if (!strcmp(name_, "[vsyscall]")) {
-			vma->type = VMA_VSYSCALL;
-		} else if (!strncmp(basename(name_), "lib", 3)) {
-			vma->type = VMA_LIB_DONT_KNOWN;
-		} else if (strlen(name_) == 0) {
-			vma->type = VMA_ANON;
-		} else {
-			vma->type = VMA_NONE;
-		}
-
-        link_vma(task, vma);
-
-	} while (1);
+	for_each_maps_vma(task, __create_vma_handler, (void*)task);
 
     return 0;
 }

@@ -32,5 +32,5 @@
 
 int ftrace_insert_trampoline_object(struct process *task, char *objpath)
 {
-    return remote_insert_object(task, objpath);
+    return remote_insert_object(task, objpath, VMA_FTRACE_TRAMPOLINE);
 }

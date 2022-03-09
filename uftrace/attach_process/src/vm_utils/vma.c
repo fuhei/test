@@ -14,12 +14,13 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/mman.h>
 
 #include "maps.h"
 #include "log.h"
 
 
-struct vma_struct * alloc_vma(struct process *task)
+struct vma_struct * alloc_vma()
 {
     struct vma_struct *vma = malloc(sizeof(struct vma_struct));
     assert(vma && "alloc vma failed.");
@@ -32,13 +33,77 @@ struct vma_struct * alloc_vma(struct process *task)
     return vma;
 }
 
-int free_vma(struct process *task, struct vma_struct * vma)
+int free_vma(struct vma_struct * vma)
 {
     if (!vma)
         return -1;
 
     free(vma);
     return 0;
+}
+
+int for_each_maps_vma(struct process *task, int (*handler)(struct vma_struct * tmpvma, void *arg), void *arg)
+{
+    struct vma_struct vma;
+
+    fseek(task->mapsfp, 0, SEEK_SET);
+    do {
+		unsigned long start, end, offset;
+		unsigned int maj, min, inode;
+		char perms[5], name_[256];
+		int r;
+		char line[1024];
+
+		if (!fgets(line, sizeof(line), task->mapsfp))
+			break;
+
+		r = sscanf(line, "%lx-%lx %s %lx %x:%x %d %255s",
+			   &start, &end, perms, &offset,
+			   &maj, &min, &inode, name_);
+		if (r <= 0) {
+			lerror("sscanf failed.\n");
+            return -1;
+		}
+
+		vma.start = start;
+		vma.end = end;
+		memcpy(vma.perms, perms, sizeof(vma.perms));
+		vma.prot = __perms2prot(perms);
+		vma.offset = offset;
+		vma.maj = maj;
+		vma.min = min;
+		vma.inode = inode;
+		strncpy(vma.name_, name_, sizeof(vma.name_));
+
+        handler(&vma, arg);
+    } while (1);
+
+    return 0;
+}
+
+int for_each_process_vma(struct process *task, int (*handler)(struct vma_struct * vma, void *arg), void *arg)
+{
+    struct vma_struct __unused *ivma = NULL;
+
+	list_for_each_entry(ivma, &task->vmas, node) {
+		handler(ivma, arg);
+	}
+    return 0;
+}
+
+
+unsigned int __perms2prot(char *perms)
+{
+    unsigned int prot = 0;
+
+	if (perms[0] == 'r')
+		prot |= PROT_READ;
+	if (perms[1] == 'w')
+		prot |= PROT_WRITE;
+	if (perms[2] == 'x')
+		prot |= PROT_EXEC;
+	/* Ignore 'p'/'s' flag, we don't need it */
+	return prot;
 }
 
 static inline int __vma_rb_insert_cmp(struct rb_node *node, unsigned long key)
