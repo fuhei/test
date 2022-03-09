@@ -56,6 +56,30 @@ int remote_munmap(struct process *task, unsigned long addr, size_t length)
     return result;
 }
 
+int remote_msync(struct process *task, unsigned long addr, size_t length, int flags)
+{
+    int ret;
+    unsigned long result;
+
+    ret = remote_syscall(task,
+            __NR_msync, addr, length, flags, 0, 0, 0, &result);
+    if (ret < 0) {
+        return 0;
+    }
+    return result;
+}
+
+
+int remote_msync_sync(struct process *task, unsigned long addr, size_t length)
+{
+    return remote_msync(task, addr, length, MS_SYNC);
+}
+int remote_msync_async(struct process *task, unsigned long addr, size_t length)
+{
+    return remote_msync(task, addr, length, MS_ASYNC);
+}
+
+
 unsigned long remote_malloc(struct process *task, size_t length)
 {
 	unsigned long remote_addr;

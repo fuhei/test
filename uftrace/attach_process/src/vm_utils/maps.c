@@ -116,15 +116,19 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy, ssi
     }
 	/**
 	 * 是否需要mmap，mmap不是很好的选择
+	 * MAP_PRIVATE: 不会同不到文件
+	 * MAP_SHARED: 同步到文件
 	 */
 	remote_addr = remote_mmap(task,
 				0UL, map_len,
 				PROT_READ | PROT_WRITE | PROT_EXEC,
-				MAP_PRIVATE, remote_fd, 0);
+				MAP_SHARED, remote_fd, 0);
     if (remote_addr == (unsigned long)MAP_FAILED) {
         lerror("Remote map failed, %s\n", objcopy);
         goto unmap_ret;
     }
+
+	remote_close(task, remote_fd);
 
 	handler_arg = (struct insert_arg) {
 		.task = task,

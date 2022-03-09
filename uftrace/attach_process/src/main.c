@@ -27,6 +27,11 @@
 #include "syscalls.h"
 #include "ftrace.h"
 #include "patch.h"
+#if defined(__x86_64__)
+#include "arch/x86_64/instruments.h"
+#elif defined(__aarch64__)
+#include "arch/aarch64/instruments.h"
+#endif
 
 static struct args_opts default_args_opts = {
 	.verbose_flag = -1,
@@ -152,6 +157,56 @@ int main(int argc, char *argv[])
 	if (default_args_opts.ftrace_object) {
 		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
 		ftrace_trampoline_object_relocate(&test_p);
+		memcpy_to_remote(&test_p,
+					test_p.ftrace_trampoline_obj->start,
+					test_p.ftrace_trampoline_obj->obj_local,
+					test_p.ftrace_trampoline_obj->obj_size);
+		remote_msync_sync(&test_p,
+					test_p.ftrace_trampoline_obj->start,
+					test_p.ftrace_trampoline_obj->obj_size);
+#if 0
+		char buffer[2048] = {0};
+		memcpy_from_remote(&test_p,
+					buffer,
+					test_p.ftrace_trampoline_obj->start,
+					test_p.ftrace_trampoline_obj->obj_size);
+		GElf_Ehdr *__ehdr = (void*)buffer;
+		if (!check_elf_ehdr(__ehdr)) {
+			lwarning("Buffer is ELF, %s\n", __ehdr->e_ident);
+		}
+#endif
+#if 0
+		unsigned char orginal_code[5];
+		unsigned char code[] = {INST_CALLQ, 0x00, 0x00, 0x00, 0x00};
+		struct elf_file_sym_struct *func_sym;
+		struct process *task = &test_p;
+
+		func_sym = elf_file_find_sym(task, "func2");
+
+		if (!func_sym) {
+			lerror("No find func_sym\n");
+			exit(1);
+		}
+		lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
+
+		*(unsigned int *)(code + 1) = (unsigned int)(0x7f0589f7d080 - (func_sym->sym->st_value) - 9);
+
+		/* Get original code */
+		memcpy_from_remote(task, &orginal_code, func_sym->sym->st_value + 4, sizeof(orginal_code));
+
+		/* Set jmp function */
+		memcpy_to_remote(task, func_sym->sym->st_value + 4, &code, sizeof(code));
+
+		process_detach(task);
+
+		/* Make target process running */
+		sleep(5);
+
+		process_attach(task);
+
+		/* Recover */
+		memcpy_to_remote(task, func_sym->sym->st_value + 4, &orginal_code, sizeof(code));
+#endif
 	}
 #endif
 

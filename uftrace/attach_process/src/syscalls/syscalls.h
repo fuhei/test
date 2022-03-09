@@ -28,6 +28,11 @@ remote_mmap(struct process *task,
             unsigned long addr, size_t length, int prot, int flags,
             int fd, off_t offset);
 int remote_munmap(struct process *task, unsigned long addr, size_t length);
+
+int remote_msync(struct process *task, unsigned long addr, size_t length, int flags);
+int remote_msync_sync(struct process *task, unsigned long addr, size_t length);
+int remote_msync_async(struct process *task, unsigned long addr, size_t length);
+
 unsigned long remote_malloc(struct process *task, size_t length);
 int remote_free(struct process *task, unsigned long addr, size_t length);
 
