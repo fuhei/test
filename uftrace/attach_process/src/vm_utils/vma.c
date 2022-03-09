@@ -213,5 +213,6 @@ int find_span_vma_area(struct process *task, ssize_t size, unsigned long *start)
             return 0;
         }
 	}
+    lerror("No space fatal in target process, pid %d\n", task->pid);
     return -1;
 }
