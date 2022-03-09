@@ -48,7 +48,7 @@ static void test_single_patch(struct process *task)
 	lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
 	lwarning("_trampoline_sym: %16lx\n", _trampoline_sym->sym->st_value);
 
-	*(unsigned int *)(code + 1) = (unsigned int)(_trampoline_sym->sym->st_value - (func_sym->sym->st_value) - 5);
+	*(unsigned int *)(code + 1) = (unsigned int)(_trampoline_sym->sym->st_value - func_sym->sym->st_value - 5);
 
 	func_vma = find_vma(task, func_sym->sym->st_value);
 	ldebug("func_vma = %s, %ld\n", func_vma->name_, sizeof(_trampoline_sym->sym->st_value));
@@ -64,7 +64,7 @@ static void test_single_patch(struct process *task)
 	process_detach(task);
 
     /* Make target process running */
-	sleep(5);
+	sleep(3);
 
     process_attach(task);
 

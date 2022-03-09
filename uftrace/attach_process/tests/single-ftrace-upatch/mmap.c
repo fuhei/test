@@ -45,9 +45,8 @@ int func1(void)
 
 int main(int argc, char *argv[])
 {
-	sleep(2);
 	printf("--- Child mmap ---\n");
-	sleep(2);
+	sleep(1);
 	while (1) {
 		func1();
 		sleep(1);
