@@ -32,4 +32,5 @@ struct args_opts {
     pid_t target_pid;
     char *target_func;
     bool check_trace_func;
+    char *ftrace_object;
 };

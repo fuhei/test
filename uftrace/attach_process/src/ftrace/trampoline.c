@@ -8,13 +8,29 @@
  * @copyright Copyright (c) 2022
  *
  */
+#include <stdio.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <assert.h>
+#include <libgen.h>
+#include <getopt.h>
 
+#include "util.h"
+#include "log.h"
+#include "elf_utils.h"
+#include "maps.h"
+#include "process.h"
+#include "syscalls.h"
+#include "ftrace.h"
+#include "patch.h"
 #include "ftrace.h"
 
-char __unused __ftrace_data data[124];
 
-void __ftrace_text
-ftrace_trampoline(void)
+int ftrace_insert_trampoline_object(struct process *task, char *objpath)
 {
-    //TODO
+    return remote_insert_object(task, objpath);
 }

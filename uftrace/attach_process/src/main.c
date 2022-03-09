@@ -33,12 +33,14 @@ static struct args_opts default_args_opts = {
 	.target_pid = 0,
 	.target_func = NULL,
 	.check_trace_func = true,
+	.ftrace_object = NULL,
 };
 
 static struct option args_options[] =
 {
 	{"verbose",		no_argument,		&default_args_opts.verbose_flag,	1},
 	{"no-check-trace",	no_argument,	0,				2},
+	{"ftrace-object",	required_argument, 0,			3},
 	{"target-function",	required_argument,	0,			'f'},
 	{"pid",			required_argument,	0,				'p'},
 	{"help",		no_argument,		0,				'h'},
@@ -55,6 +57,7 @@ static void usage_help(char *cmd)
 	printf(" \n");
 	printf(" Other options:\n");
 	printf("  --verbose	show detail.\n");
+	printf("  --ftrace-object		Insert obj.o file for ftrace trampoline.\n");
 	printf("  --no-check-trace		Do not check trace function, like mcount(), default is CHECK.\n");
 	printf(" \n");
 	exit(1);
@@ -64,61 +67,6 @@ void sig_handler(int signum)
 {
 	exit(1);
 }
-
-#if 0
-void parse_args(int argc, char *argv[])
-{
-	pid_t pid = 0;
-	while (1) {
-        /* getopt_long stores the option index here. */
-        int c, option_index = 0;
-        c = getopt_long (argc, argv, "f:hp:", args_options, &option_index);
-        if (c < 0) {
-            break;
-        }
-		switch (c) {
-		case 1:
-			default_args_opts.verbose_flag = 1;
-			break;
-		case 2:
-			default_args_opts.check_trace_func = false;
-			break;
-		case 'h':
-			usage_help(argv[0]);
-			break;
-		case 'f':
-			default_args_opts.target_func = strdup(optarg);
-			break;
-		case 'p':
-			pid = atoi(optarg);
-			break;
-		default:
-			usage_help(argv[0]);
-        }
-	}
-	if (optind < argc) {
-        printf ("non-option ARGV-elements: ");
-        while (optind < argc)
-            printf ("%s ", argv[optind++]);
-        putchar ('\n');
-    }
-	if (default_args_opts.verbose_flag == 1) {
-		puts("verbose flag is set");
-	} else if(default_args_opts.verbose_flag == 0) {
-		puts("verbose flag is not set");
-	}
-
-	if (pid == 0) {
-		lerror("no set -p, --pid option\n");
-		usage_help(argv[0]);
-	}
-	default_args_opts.target_pid = pid;
-
-	if (!default_args_opts.target_func) {
-		lerror("Specify -f function option\n");
-	}
-}
-#endif
 
 int main(int argc, char *argv[])
 {
@@ -139,6 +87,9 @@ int main(int argc, char *argv[])
 			break;
 		case 2:
 			default_args_opts.check_trace_func = false;
+			break;
+		case 3:
+			default_args_opts.ftrace_object = optarg;
 			break;
 		case 'h':
 			usage_help(argv[0]);
@@ -188,6 +139,9 @@ int main(int argc, char *argv[])
 		lerror("attach %d failed, ret = %d\n", test_p.pid, ret);
 		goto attach_fail_return;
 	}
+
+	/*  */
+	ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
 
 #if 0
 	test_syscall_mmap(&test_p);

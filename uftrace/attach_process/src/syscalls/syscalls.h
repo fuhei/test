@@ -33,3 +33,5 @@ int remote_open(struct process *task, char *pathname, int flags, mode_t mode);
 int remote_close(struct process *task, int remote_fd);
 
 int remote_ftruncate(struct process *task, int remote_fd, off_t length);
+
+int remote_fstat(struct process *task, int remote_fd, struct stat *statbuf);

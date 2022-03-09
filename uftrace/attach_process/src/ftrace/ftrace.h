@@ -19,10 +19,9 @@
 #define __ftrace_text __section(FTRACE_TEXT)
 #define __ftrace_data __section(FTRACE_DATA)
 
-struct ftrace_metadata {
-
-};
-
 //TODO
 
 void test_ftrace(struct process *task);
+
+
+int ftrace_insert_trampoline_object(struct process *task, char *objpath);

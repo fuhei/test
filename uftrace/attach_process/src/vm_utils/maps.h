@@ -77,6 +77,8 @@ extern struct list_head maps_vma_list;
 int open_pid_mem(struct process *task);
 int open_pid_maps(struct process *task);
 
+int remote_insert_object(struct process *task, char *objpath);
+
 struct vma_struct * alloc_vma(struct process *task);
 int free_vma(struct process *task, struct vma_struct * vma);
 
