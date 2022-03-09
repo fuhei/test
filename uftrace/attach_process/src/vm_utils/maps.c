@@ -94,7 +94,8 @@ static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
 	return 0;
 }
 
-int remote_insert_object(struct process *task, char *objreal, char *objcopy, ssize_t size, enum vma_type type)
+int remote_insert_object(struct process *task, char *objreal, char *objcopy,
+		unsigned long start, ssize_t size, enum vma_type type)
 {
 	int ret = 0;
 	unsigned long remote_addr;
@@ -120,7 +121,7 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy, ssi
 	 * MAP_SHARED: 同步到文件
 	 */
 	remote_addr = remote_mmap(task,
-				0UL, map_len,
+				start, map_len,
 				PROT_READ | PROT_WRITE | PROT_EXEC,
 				MAP_SHARED, remote_fd, 0);
     if (remote_addr == (unsigned long)MAP_FAILED) {

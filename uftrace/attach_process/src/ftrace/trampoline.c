@@ -35,11 +35,14 @@ int ftrace_insert_trampoline_object(struct process *task, char *objpath)
 {
     char objcopy[512] = {0};
     ssize_t size;
+    unsigned long start = 0;
 
     file_size(objpath, &size);
 
     snprintf(objcopy, sizeof(objcopy), "/tmp/trampoline-%s.XXXXXX", basename(objpath));
     file_mktemp(objcopy);
 
-    return remote_insert_object(task, objpath, objcopy, size, VMA_FTRACE_TRAMPOLINE);
+    find_span_vma_area(task, size, &start);
+
+    return remote_insert_object(task, objpath, objcopy, start, size, VMA_FTRACE_TRAMPOLINE);
 }

@@ -186,3 +186,32 @@ void print_vma(struct vma_struct * vma)
             vma->start, vma->end, vma->perms, vma->offset,
             vma->maj, vma->min, vma->inode, vma->name_);
 }
+
+/**
+ * @brief Find a span VMA start address
+ *
+ * @param task
+ * @param size
+ * @param start
+ * @return int
+ */
+int find_span_vma_area(struct process *task, ssize_t size, unsigned long *start)
+{
+    struct vma_struct *ivma;
+    struct rb_node * rnode;
+
+	for (rnode = rb_first(&task->vmas_rb); rnode; rnode = rb_next(rnode)) {
+		ivma = rb_entry(rnode, struct vma_struct, rb_node);
+        struct rb_node *next_node = rb_next(rnode);
+        struct vma_struct *next_vma;
+        if (!next_node) {
+            return -1;
+        }
+        next_vma = rb_entry(next_node, struct vma_struct, rb_node);
+        if (next_vma->start - ivma->end >= size) {
+            *start = ivma->end;
+            return 0;
+        }
+	}
+    return -1;
+}

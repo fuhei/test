@@ -157,6 +157,7 @@ int main(int argc, char *argv[])
 	if (default_args_opts.ftrace_object) {
 		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
 		ftrace_trampoline_object_relocate(&test_p);
+
 		memcpy_to_remote(&test_p,
 					test_p.ftrace_trampoline_obj->start,
 					test_p.ftrace_trampoline_obj->obj_local,
@@ -164,6 +165,7 @@ int main(int argc, char *argv[])
 		remote_msync_sync(&test_p,
 					test_p.ftrace_trampoline_obj->start,
 					test_p.ftrace_trampoline_obj->obj_size);
+
 #if 0
 		char buffer[2048] = {0};
 		memcpy_from_remote(&test_p,

@@ -87,7 +87,8 @@ unsigned int __perms2prot(char *perms);
 int open_pid_mem(struct process *task);
 int open_pid_maps(struct process *task);
 
-int remote_insert_object(struct process *task, char *objreal, char *objcopy, ssize_t size, enum vma_type type);
+int remote_insert_object(struct process *task, char *objreal, char *objcopy,
+        unsigned long start, ssize_t size, enum vma_type type);
 
 struct vma_struct * alloc_vma();
 int free_vma(struct vma_struct * vma);
@@ -97,6 +98,6 @@ int for_each_maps_vma(struct process *task, int (*handler)(struct vma_struct * t
 int for_each_process_vma(struct process *task, int (*handler)(struct vma_struct * vma, void *arg), void *arg);
 
 struct vma_struct *find_vma(struct process *task, unsigned long vaddr);
-
+int find_span_vma_area(struct process *task, ssize_t size, unsigned long *start);
 
 void print_vma(struct vma_struct * vma);
