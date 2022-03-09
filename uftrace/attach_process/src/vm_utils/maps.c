@@ -18,6 +18,7 @@
 #include "util.h"
 #include "log.h"
 #include "elf_utils.h"
+#include "file_utils.h"
 #include "maps.h"
 #include "process.h"
 #include "syscalls.h"
@@ -51,6 +52,7 @@ struct insert_arg {
 	struct process *task;
 	unsigned long remote_addr;
 	enum vma_type vma_type;
+	struct vma_struct *insert_vma; /* return value */
 };
 
 static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
@@ -58,6 +60,13 @@ static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
 	struct insert_arg *i_arg = (struct insert_arg*)arg;
 	struct process *task = i_arg->task;
 	struct vma_struct *find = find_vma(task, tmpvma->start);
+	struct vma_struct *already_exist = find_vma(task, i_arg->remote_addr);
+
+	if (already_exist) {
+		test_maps_vma(task);
+		lerror("%lx already in %d.%s.\n", i_arg->remote_addr, task->pid, already_exist->name_);
+		return -1;
+	}
 	if (!find) {
 		struct vma_struct *vma = alloc_vma();
 
@@ -73,6 +82,12 @@ static int __insert_vma_handler(struct vma_struct * tmpvma, void *arg)
 		vma->type = i_arg->vma_type;
 
 		link_vma(task, vma);
+
+		/* Return */
+		i_arg->insert_vma = vma;
+
+		/* done for each */
+		return -1;
 	}
 	return 0;
 }
@@ -85,6 +100,7 @@ int remote_insert_object(struct process *task, char *objpath, enum vma_type type
 	int __unused remote_fd;
     struct stat statbuf;
 	struct insert_arg handler_arg;
+	struct vma_struct *obj_vma = NULL;
 
 	remote_fd = remote_open(task, objpath, O_RDWR, 0644);
     if (remote_fd <= 0) {
@@ -111,10 +127,29 @@ int remote_insert_object(struct process *task, char *objpath, enum vma_type type
 		.task = task,
 		.remote_addr = remote_addr,
 		.vma_type = type,
+		.insert_vma = NULL,
 	};
 
 	/* Insert VMA */
 	for_each_maps_vma(task, __insert_vma_handler, (void*)&handler_arg);
+
+	/* mmap new object file into vma */
+	if (handler_arg.insert_vma) {
+		obj_vma = handler_arg.insert_vma;
+		switch (type) {
+		case VMA_FTRACE_TRAMPOLINE:
+			task->ftrace_trampoline_obj = obj_vma;
+			break;
+		case VMA_PATCH_OBJ:
+			//TODO: maybe is link list
+		default:
+			break;
+		}
+
+		mmap_file(objpath, (void **)&obj_vma->obj_local_mmap, &obj_vma->obj_size);
+	} else {
+		lerror("Insert object failed.\n");
+	}
 
     return 0;
 

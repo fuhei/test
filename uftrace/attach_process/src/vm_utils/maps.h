@@ -69,7 +69,12 @@ struct vma_struct {
      */
     struct rb_node rb_node;
 
+    /* Read from /proc/PID/mem */
     char *dup_remote_mem;
+
+    /* Local file mmap */
+    char *obj_local_mmap;
+    ssize_t obj_size;
 };
 
 int test_maps_vma(struct process *task);

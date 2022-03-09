@@ -53,6 +53,11 @@ struct process {
     };
 
     /**
+     * ftrace trampoline object
+     */
+    struct vma_struct *ftrace_trampoline_obj;
+
+    /**
      * Storage COMM/EXE ELF file
      */
     struct elf_file_struct elf_file;

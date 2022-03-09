@@ -42,8 +42,17 @@ int free_vma(struct vma_struct * vma)
     return 0;
 }
 
+/**
+ * @brief For each VMA in /proc/PID/maps
+ *
+ * @param task
+ * @param handler if return -1, 'for each' will terminate.
+ * @param arg
+ * @return int
+ */
 int for_each_maps_vma(struct process *task, int (*handler)(struct vma_struct * tmpvma, void *arg), void *arg)
 {
+    int handler_ret = 0;
     struct vma_struct vma;
 
     fseek(task->mapsfp, 0, SEEK_SET);
@@ -75,7 +84,10 @@ int for_each_maps_vma(struct process *task, int (*handler)(struct vma_struct * t
 		vma.inode = inode;
 		strncpy(vma.name_, name_, sizeof(vma.name_));
 
-        handler(&vma, arg);
+        handler_ret = handler(&vma, arg);
+        if (handler_ret == -1) {
+            break;
+        }
     } while (1);
 
     return 0;
