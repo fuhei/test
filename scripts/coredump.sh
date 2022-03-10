@@ -11,6 +11,7 @@ function coredump() {
 	echo -e "            path -> current directory."
 	echo -e " "
 
+	ulimit -c unlimited
 	echo 1 > /proc/sys/kernel/core_uses_pid
 #echo "./core.%t.%p" >/proc/sys/kernel/core_pattern
 #echo "/usr/libexec/abrt-hook-ccpp %s %c %p %u %g %t e %P %I %h" >/proc/sys/kernel/core_pattern
