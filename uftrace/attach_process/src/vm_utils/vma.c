@@ -210,6 +210,7 @@ int find_span_vma_area(struct process *task, ssize_t size, unsigned long *start)
         next_vma = rb_entry(next_node, struct vma_struct, rb_node);
         if (next_vma->start - ivma->end >= size) {
             *start = ivma->end;
+            linfo("Find VMA start = %lx\n", *start);
             return 0;
         }
 	}

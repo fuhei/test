@@ -39,8 +39,8 @@ int ftrace_insert_trampoline_object(struct process *task, char *objpath)
 
     file_size(objpath, &size);
 
-    snprintf(objcopy, sizeof(objcopy), "/tmp/trampoline-%s.XXXXXX", basename(objpath));
-    file_mktemp(objcopy);
+    snprintf(objcopy, sizeof(objcopy), "/tmp/trampoline-%s", basename(objpath));
+    //file_mktemp(objcopy);
 
     find_span_vma_area(task, size, &start);
 

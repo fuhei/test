@@ -114,13 +114,16 @@ static int __apply_rela(char *elffile, GElf_Shdr *relsec)
 
     /* Additional section information for relsec */
     GElf_Shdr *__unused tshdr = shdr + relsec->sh_info;
+	ldebug("relsec->sh_info = %d\n", relsec->sh_info);
 
     /*  */
     void __unused *t = (void *)ehdr + tshdr->sh_offset;
 	void __unused *tshdr2 = (void *)tshdr->sh_addr;
 	int i;
 
-    char *secname;
+	ldebug("%p, %p\n", t, tshdr2);
+
+    char *secname;	/* .rela.text */
     char *strsym;
 
     for (i = 1; i < ehdr->e_shnum; i++) {
@@ -171,6 +174,7 @@ add_jmp_entry(struct process *task, unsigned long jmp, unsigned long addr)
     //TODO
     return 0;
 }
+
 static inline int
 symbol_resolve(struct process *task,
 	       GElf_Shdr *shdr,
@@ -184,7 +188,9 @@ symbol_resolve(struct process *task,
 		s->st_value = shdr[s->st_shndx].sh_addr;
 		break;
 
-    /* object.o's global function and variable */
+    /* object.o's global function and variable,
+	 * such as func1(), func2(),
+	 */
 	case STT_FUNC:
 	case STT_OBJECT:
 
@@ -209,8 +215,7 @@ symbol_resolve(struct process *task,
 			s->st_size = uaddr;
 			s->st_value = add_jmp_entry(task, JMP_TABLE_JUMP_ARCH, uaddr);
 
-			ldebug("symbol '%s' = 0x%lx\n", symname, uaddr);
-			ldebug("jmptable '%s' = 0x%lx\n", symname, s->st_value);
+			linfo("SHN_UNDEF&&STB_GLOBAL: symbol '%s' = 0x%lx\n", symname, uaddr);
 		} else {
 			/*
 			 * We retain all non-local (except for .LC*)
@@ -221,7 +226,7 @@ symbol_resolve(struct process *task,
 				       symname);
 
 			s->st_value += shdr[s->st_shndx].sh_addr;
-			ldebug("symbol '%s' = 0x%lx\n", symname, s->st_value);
+			linfo("STT_FUNC|STT_OBJECT: symbol '%s' = 0x%lx\n", symname, s->st_value);
 		}
 
 		break;
@@ -229,12 +234,13 @@ symbol_resolve(struct process *task,
 	case STT_TLS:
 		break;
 
-    /* printf, fprintf in here. */
+    /* printf, fprintf, stdout */
 	case STT_NOTYPE:
 		s->st_value += shdr[s->st_shndx].sh_addr;
+		linfo("STT_NOTYPE: symbol '%s' = 0x%lx\n", symname, s->st_value);
 		break;
 
-    /* If obj.o file, skip */
+    /* If obj.o file, skip? */
 	case STT_FILE:
         break;
 	default:
@@ -251,14 +257,17 @@ static int ftrace_trampoline_object_resolve(struct process *task)
     int i, symidx = -1, __unused ret;
 	GElf_Ehdr *ehdr;
 	GElf_Shdr *shdr;
-    GElf_Sym *sym;
-	char *strsym;
+    GElf_Sym *symtab_addr;
+	char *sym_strs;
 
 	ehdr = (void *)task->ftrace_trampoline_obj->obj_local;
 	shdr = (void *)ehdr + ehdr->e_shoff;
 
+	/* Relocation all section addr */
     for (i = 1; i < ehdr->e_shnum; i++) {
 		GElf_Shdr *s = shdr + i;
+
+		/* Find .symtab section */
 		if (s->sh_type == SHT_SYMTAB) {
 			symidx = i;
             ldebug("SHT_SYMTAB, symidx = %d, section: %s\n", symidx, elf_secname(ehdr, s));
@@ -270,6 +279,7 @@ static int ftrace_trampoline_object_resolve(struct process *task)
 			 * proper offet in *target process* region of memory
 			 */
 			s->sh_addr = (unsigned long)task->ftrace_trampoline_obj->start + s->sh_offset;
+			ldebug("Our section '%s' sh_addr = 0x%lx\n", elf_secname(ehdr, s), s->sh_addr);
 		} else {
 			/*
 			 * We copy the `sh_addr`esses from the original binary
@@ -278,19 +288,22 @@ static int ftrace_trampoline_object_resolve(struct process *task)
 			 */
 			if (s->sh_addr)
 				s->sh_addr += 0;
+			ldebug("Not our section '%s' sh_addr = 0x%lx\n", elf_secname(ehdr, s), s->sh_addr);
 		}
-		ldebug("section '%s' = 0x%lx\n", elf_secname(ehdr, s), s->sh_addr);
 	}
 	ldebug("Resolving symbols for OBJ: '%s'\n", task->ftrace_trampoline_obj->name_);
 
-    sym = (void *)ehdr + shdr[symidx].sh_offset;
-	strsym = (void *)ehdr + shdr[shdr[symidx].sh_link].sh_offset;
+    symtab_addr = (void *)ehdr + shdr[symidx].sh_offset;
+	/**
+	 * Like '\0trampoline.c\0_trampoline\0printf\0stdout\0fflush\0ftrace_tramp\0___func3'
+	 */
+	sym_strs = (void *)ehdr + shdr[shdr[symidx].sh_link].sh_offset;
 	for (i = 1; i < shdr[symidx].sh_size / sizeof(GElf_Sym); i++) {
-	    GElf_Sym *s = sym + i;
-		char *symname = strsym + s->st_name;
+	    GElf_Sym *i_sym = symtab_addr + i;
+		char *symname = sym_strs + i_sym->st_name;
 
         ldebug("Resolving symbols '%s'\n", symname);
-		ret = symbol_resolve(task, shdr, s, symname);
+		ret = symbol_resolve(task, shdr, i_sym, symname);
 		if (ret < 0)
 		    return ret;
 	}

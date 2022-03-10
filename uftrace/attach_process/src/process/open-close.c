@@ -47,9 +47,12 @@ static int __create_vma_handler(struct vma_struct * tmpvma, void *arg)
 	} else if (!strncmp(basename(vma->name_), "libc", 4) ||
 		!strncmp(basename(vma->name_), "libssp", 6)) {
 		vma->type = VMA_LIBC;
+		linfo("libc base = %lx\n", task->libc_base);
 		if (!task->libc_base &&
-			vma->prot & PROT_EXEC)
+			vma->prot & PROT_EXEC) {
 			task->libc_base = vma;
+			linfo("libc base = %lx\n", task->libc_base);
+		}
 	} else if (!strcmp(vma->name_, "[heap]")) {
 		vma->type = VMA_HEAP;
 	} else if (!strncmp(basename(vma->name_), "ld-linux", 8)) {
@@ -101,6 +104,8 @@ static int __load_vmas(struct process *task)
 			case VMA_VSYSCALL:
 			case VMA_LIB_DONT_KNOWN:
 			case VMA_ANON:
+			case VMA_FTRACE_TRAMPOLINE:
+			case VMA_PATCH_OBJ:
 				vma->dup_remote_mem = NULL;
 				continue;
 			case VMA_SELF:
@@ -172,6 +177,9 @@ int process_exist(pid_t pid)
 int open_process(struct process *p, pid_t pid, struct args_opts *args)
 {
 	assert(p && "invalide process pointer.");
+
+	memset(p, 0x00, sizeof(struct process));
+
 	p->pid = pid;
 
 	if (process_exist(pid) != 0) {

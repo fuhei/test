@@ -152,9 +152,12 @@ int main(int argc, char *argv[])
 		goto attach_fail_return;
 	}
 
-#if 0
+#if 1
 	/* Insert trampoline object */
 	if (default_args_opts.ftrace_object) {
+
+		test_maps_vma(&test_p);
+
 		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
 		ftrace_trampoline_object_relocate(&test_p);
 
@@ -162,11 +165,8 @@ int main(int argc, char *argv[])
 					test_p.ftrace_trampoline_obj->start,
 					test_p.ftrace_trampoline_obj->obj_local,
 					test_p.ftrace_trampoline_obj->obj_size);
-		remote_msync_sync(&test_p,
-					test_p.ftrace_trampoline_obj->start,
-					test_p.ftrace_trampoline_obj->obj_size);
 
-#if 0
+#if 1
 		char buffer[2048] = {0};
 		memcpy_from_remote(&test_p,
 					buffer,
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 			lwarning("Buffer is ELF, %s\n", __ehdr->e_ident);
 		}
 #endif
-#if 0
+#if 1
 		unsigned char orginal_code[5];
 		unsigned char code[] = {INST_CALLQ, 0x00, 0x00, 0x00, 0x00};
 		struct elf_file_sym_struct *func_sym;
@@ -191,7 +191,7 @@ int main(int argc, char *argv[])
 		}
 		lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
 
-		*(unsigned int *)(code + 1) = (unsigned int)(0x40503c - (func_sym->sym->st_value) - 9);
+		*(unsigned int *)(code + 1) = (unsigned int)(0x405040 - (func_sym->sym->st_value) - 9);
 
 		/* Get original code */
 		memcpy_from_remote(task, &orginal_code, func_sym->sym->st_value + 4, sizeof(orginal_code));
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 		process_detach(task);
 
 		/* Make target process running */
-		sleep(5);
+		sleep(50);
 
 		process_attach(task);
 
@@ -217,7 +217,7 @@ int main(int argc, char *argv[])
 	test_maps_vma(&test_p);
 	test_elf(&test_p);
 #endif
-#if 1
+#if 0
 	/* see tests/single-ftrace-upatch */
 	test_patch(&test_p);
 	/* see tests/single-ftrace-upatch */
