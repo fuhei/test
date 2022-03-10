@@ -1,0 +1,47 @@
+DNF-CHANGELOG(8)                                                         dnf-plugins-core                                                         DNF-CHANGELOG(8)
+
+NAME
+       dnf-changelog - DNF changelog Plugin
+
+DESCRIPTION
+       changelog is a plugin for viewing package changelogs.
+
+SYNOPSIS
+       dnf changelog [<options>] <package-spec>...
+
+ARGUMENTS
+       <package-spec>
+              Package specification for packages to display changelogs.
+
+OPTIONS
+       All general DNF options are accepted, see Options in dnf(8) for details.
+
+       --since=<date>
+              Show only changelog entries since <date>. To avoid ambiguosity using YYYY-MM-DD date format is recommended.
+
+       --count=<number>
+              Show maximum of <number> changelog entries per package.
+
+       --upgrades
+              Show only new changelog entries for packages, that provide an upgrade for some of already installed packages.
+
+EXAMPLES
+       Show changelogs for all packages since November 1, 2018:
+
+          dnf changelog --since=2018-11-1
+
+       Show 3 latest changelogs of package dnf:
+
+          dnf changelog --count=3 dnf
+
+       Show what is new in upgradable packages:
+
+          dnf changelog --upgrades
+
+AUTHOR
+       See AUTHORS in your Core DNF Plugins distribution
+
+COPYRIGHT
+       2022, Red Hat, Licensed under GPLv2+
+
+4.0.24                                                                     Feb 07, 2022                                                           DNF-CHANGELOG(8)
