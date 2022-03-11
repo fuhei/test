@@ -26,34 +26,23 @@
 
 int
 arch_x86_64_apply_relocate(struct process *task, GElf_Rela *r, GElf_Sym *s,
-							void *loc, void *loc2, unsigned long val)
+							void *loc_local, void *loc_remote, unsigned long val)
 {
 	switch (GELF_R_TYPE(r->r_info)) {
 	case R_X86_64_NONE:
 		break;
 	case R_X86_64_64:
-#if 0
-		if (*(uint64_t*)loc != 0)
-			goto invalid_relocation;
-#endif
-		*(unsigned long *)loc = val;
+		*(unsigned long *)loc_local = val;
 		break;
+	/* Global anon string, like printf("Hello")'s "Hello"??? */
 	case R_X86_64_32:
-#if 0
-		if (*(uint32_t*)loc != 0)
-			goto invalid_relocation;
-#endif
-		*(unsigned int *)loc = val;
-        if (val != *(uint32_t *)loc)
+		*(unsigned int *)loc_local = val;
+        if (val != *(uint32_t *)loc_local)
             goto overflow;
 		break;
 	case R_X86_64_32S:
-#if 0
-		if (*(int32_t*)loc != 0)
-			goto invalid_relocation;
-#endif
-		*(signed int *)loc = val;
-        if ((int64_t)val != *(int32_t *)loc)
+		*(signed int *)loc_local = val;
+        if ((int64_t)val != *(int32_t *)loc_local)
             goto overflow;
 		break;
 	case R_X86_64_GOTTPOFF:
@@ -72,14 +61,16 @@ arch_x86_64_apply_relocate(struct process *task, GElf_Rela *r, GElf_Sym *s,
 			val = r->r_addend + task->ftrace_trampoline_obj->start - 4;
 		}
 		/* FALLTHROUGH */
+	/* Global variables, */
 	case R_X86_64_PC32:
+	/* Global functions, like printf() */
 	case R_X86_64_PLT32:
-		val -= (unsigned long)loc2;
-		*(unsigned int *)loc = val;
+		val -= (unsigned long)loc_remote;
+		*(unsigned int *)loc_local = val;
 		break;
 	case R_X86_64_PC64:
-		val -= (unsigned long)loc2;
-		*(unsigned long *)loc = val;
+		val -= (unsigned long)loc_remote;
+		*(unsigned long *)loc_local = val;
 		break;
 	case R_X86_64_TPOFF64:
 	case R_X86_64_TPOFF32:
@@ -103,7 +94,7 @@ overflow:
  * .rela.eh_frame
  * [...]
  */
-static int __apply_rela(char *elffile, GElf_Shdr *relsec)
+static int __apply_rela(struct process *task, char *elffile, GElf_Shdr *relsec)
 {
 	GElf_Ehdr __unused *ehdr = (void *)elffile;
 	GElf_Shdr __unused *shdr = (void *)ehdr + ehdr->e_shoff;
@@ -113,28 +104,34 @@ static int __apply_rela(char *elffile, GElf_Shdr *relsec)
     GElf_Rela __unused *relocs = (void *)ehdr + relsec->sh_offset;
 
     /* Additional section information for relsec */
-    GElf_Shdr *__unused tshdr = shdr + relsec->sh_info;
-	ldebug("relsec->sh_info = %d\n", relsec->sh_info);
+    GElf_Shdr *__unused text_shdr = shdr + relsec->sh_info;
 
-    /*  */
-    void __unused *t = (void *)ehdr + tshdr->sh_offset;
-	void __unused *tshdr2 = (void *)tshdr->sh_addr;
+    /* Get .text section header(in local process address space)
+	 * and addr(in target process address space)
+	 */
+    void __unused *text = (void *)ehdr + text_shdr->sh_offset;
+	void __unused *text_addr = (void *)text_shdr->sh_addr;
 	int i;
 
-	ldebug("%p, %p\n", t, tshdr2);
-
-    char *secname;	/* .rela.text */
+    char *secname;	/* .text, .eh_frame */
     char *strsym;
 
+	/* Find symtab section header */
     for (i = 1; i < ehdr->e_shnum; i++) {
         if (shdr[i].sh_type == SHT_SYMTAB)
             symhdr = &shdr[i];
     }
-    secname = elf_secname(ehdr, tshdr);
+
+	/* '.text', '.eh_frame' */
+    secname = elf_secname(ehdr, text_shdr);
+
+	/* Strings */
     strsym = (void *)elffile + shdr[symhdr->sh_link].sh_offset;
 
-    ldebug("RELA. <.rela%s>\n", secname);
+	ldebug("relsec->sh_info = %d, %p, %p, RELA <.rela%s>\n", relsec->sh_info, text, text_addr, secname);
 
+	ldebug("%20s: %16s %16s - %16s: %16s %10s\n",
+		"TYPE", "NAME", "LOCAL", "REMOTE", "VALUE", "STATUS");
     /* For each rela in this section */
 	for (i = 0; i < relsec->sh_size / sizeof(*relocs); i++) {
 		GElf_Rela *rela = relocs + i;
@@ -144,13 +141,21 @@ static int __apply_rela(char *elffile, GElf_Shdr *relsec)
 		void *loc_local, *relative_loc_remote;
 
         /* Location in our address space */
-		loc_local = t + rela->r_offset;
+		loc_local = text + rela->r_offset;
+
 		/* Location in target process address space (for relative addressing) */
-		relative_loc_remote = tshdr2 + rela->r_offset;
+		relative_loc_remote = text_addr + rela->r_offset;
 
         val = sym->st_value + rela->r_addend;
 
-        ldebug("%30s: %16lx - %16lx: %16lx (%lx)\n", symname, loc_local, relative_loc_remote, val, elffile);
+        ldebug("%20s: %16s %16lx - %16lx: %16lx Before\n",
+			elf_r_x86_64_name(GELF_R_TYPE(rela->r_info)), symname, loc_local, relative_loc_remote, val);
+
+		arch_x86_64_apply_relocate(task, rela, sym, loc_local, relative_loc_remote, val);
+
+        ldebug("%20s: %16s %16lx - %16lx: %16lx Modified\n",
+			elf_r_x86_64_name(GELF_R_TYPE(rela->r_info)), symname, loc_local, relative_loc_remote, val);
+
     }
     return 0;
 }
@@ -185,6 +190,7 @@ symbol_resolve(struct process *task,
 
 	switch(GELF_ST_TYPE(s->st_info)) {
 	case STT_SECTION:
+		ldebug("STT_SECTION: %s\n", symname);
 		s->st_value = shdr[s->st_shndx].sh_addr;
 		break;
 
@@ -193,6 +199,7 @@ symbol_resolve(struct process *task,
 	 */
 	case STT_FUNC:
 	case STT_OBJECT:
+		ldebug("STT_FUNC|STT_OBJECT: %s\n", symname);
 
 		/* TODO(pboldin) this breaks rule for overriding
 		 * symbols via dynamic libraries. Fix it.
@@ -232,16 +239,18 @@ symbol_resolve(struct process *task,
 		break;
 
 	case STT_TLS:
+		ldebug("STT_TLS: %s\n", symname);
 		break;
 
     /* printf, fprintf, stdout */
 	case STT_NOTYPE:
-		s->st_value += shdr[s->st_shndx].sh_addr;
 		linfo("STT_NOTYPE: symbol '%s' = 0x%lx\n", symname, s->st_value);
+		s->st_value += shdr[s->st_shndx].sh_addr;
 		break;
 
     /* If obj.o file, skip? */
 	case STT_FILE:
+		ldebug("STT_FILE: %s\n", symname);
         break;
 	default:
 		lerror("Unsupported symbol type: %d, symname = %s\n", GELF_ST_TYPE(s->st_info), symname);
@@ -274,6 +283,13 @@ static int ftrace_trampoline_object_resolve(struct process *task)
         }
 
 		if (is_our_section(s)) {
+			/**
+			 * Variables in obj.o ELF file.
+			 */
+			if (!strcmp(elf_secname(ehdr, s), ".data")) {
+				ldebug(".data section '%s' sh_addr = 0x%lx\n", elf_secname(ehdr, s), s->sh_addr);
+				continue;
+			}
 			/*
 			 * For our own sections, we just point sh_addr to
 			 * proper offet in *target process* region of memory
@@ -291,7 +307,7 @@ static int ftrace_trampoline_object_resolve(struct process *task)
 			ldebug("Not our section '%s' sh_addr = 0x%lx\n", elf_secname(ehdr, s), s->sh_addr);
 		}
 	}
-	ldebug("Resolving symbols for OBJ: '%s'\n", task->ftrace_trampoline_obj->name_);
+	ldebug("OBJ: '%s'\n", task->ftrace_trampoline_obj->name_);
 
     symtab_addr = (void *)ehdr + shdr[symidx].sh_offset;
 	/**
@@ -340,7 +356,7 @@ int ftrace_trampoline_object_relocate(struct process *task)
             continue;
 
         if (s->sh_type == SHT_RELA) {
-            __apply_rela((void*)ehdr, s);
+            __apply_rela(task, (void*)ehdr, s);
         } else if (shdr->sh_type == SHT_REL) {
             //TODO
 			lerror("Not support yet.\n");

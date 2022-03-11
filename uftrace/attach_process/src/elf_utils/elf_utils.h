@@ -82,4 +82,5 @@ struct elf_file_sym_struct *
 elf_file_find_sym(struct process *task, char *symname);
 
 /* Rela */
+const char *elf_r_x86_64_name(int r);
 void print_elf_rela(GElf_Rela *rela);

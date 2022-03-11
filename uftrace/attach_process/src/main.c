@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 		process_detach(task);
 
 		/* Make target process running */
-		sleep(50);
+		sleep(10);
 
 		process_attach(task);
 
