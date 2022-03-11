@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm -f *.o *.out core.*
+rm -f *.o *.out core.* /tmp/trampoline-*
