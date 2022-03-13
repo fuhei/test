@@ -149,7 +149,7 @@ static int __open_comm_elf(struct process *task)
         lerror("Fail mmap file %s\n", task->comm);
         return -1;
     }
-	if (check_elf_ehdr(task->elf_file.file_map) != 0) {
+	if (check_elf_ehdr_magic(task->elf_file.file_map) != 0) {
 		munmap_file(task->elf_file.file_map, task->elf_file.file_len);
 		task->elf_file.file_map = NULL;
 		task->elf_file.file_len = 0;

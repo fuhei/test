@@ -173,11 +173,11 @@ int main(int argc, char *argv[])
 					test_p.ftrace_trampoline_obj->start,
 					test_p.ftrace_trampoline_obj->obj_size);
 		GElf_Ehdr *__ehdr = (void*)buffer;
-		if (!check_elf_ehdr(__ehdr)) {
+		if (!check_elf_ehdr_magic(__ehdr)) {
 			lwarning("Buffer is ELF, %s\n", __ehdr->e_ident);
 		}
 #endif
-#if 1
+#if 0
 		unsigned char orginal_code[5];
 		unsigned char code[] = {INST_CALLQ, 0x00, 0x00, 0x00, 0x00};
 		struct elf_file_sym_struct *func_sym;

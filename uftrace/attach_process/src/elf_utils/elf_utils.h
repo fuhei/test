@@ -56,7 +56,8 @@ int elf_sym_count_undefined(void *filemap, GElf_Ehdr *ehdr);
 int check_elf_ftrace_function(void *elf_file_mmap);
 
 /* Ehdr */
-int check_elf_ehdr(GElf_Ehdr *ehdr);
+int check_elf_ehdr_magic(GElf_Ehdr *ehdr);
+int check_elf_ehdr_len(GElf_Ehdr *ehdr, ssize_t elf_file_len);
 void print_elf_ehdr(GElf_Ehdr *ehdr);
 
 /* Phdr */

@@ -29,7 +29,7 @@
  * @param ehdr
  * @return int 0 if ok, -1 if not ok
  */
-int check_elf_ehdr(GElf_Ehdr *ehdr)
+int check_elf_ehdr_magic(GElf_Ehdr *ehdr)
 {
     if (ehdr->e_ident[EI_MAG0] != ELFMAG0 ||
         ehdr->e_ident[EI_MAG1] != ELFMAG1 ||
@@ -38,6 +38,21 @@ int check_elf_ehdr(GElf_Ehdr *ehdr)
         return -1;
     }
     return 0;
+}
+
+int check_elf_ehdr_len(GElf_Ehdr *ehdr, ssize_t elf_file_len)
+{
+	if (check_elf_ehdr_magic(ehdr) != 0) {
+		return -1;
+	}
+
+	if (ehdr->e_shoff >= elf_file_len
+	    || (ehdr->e_shnum * sizeof(GElf_Shdr) >
+		elf_file_len - ehdr->e_shoff)) {
+		lerror("Wrong elf file len.\n");
+		return -1;
+	}
+	return 0;
 }
 
 const char *elf_e_type_string(GElf_Ehdr *ehdr)

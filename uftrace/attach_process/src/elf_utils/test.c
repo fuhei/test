@@ -32,7 +32,7 @@ int test_elf(struct process *task)
 		GElf_Ehdr *ehdr = (GElf_Ehdr*)ivma->dup_remote_mem;
         if (!ehdr)
             continue;
-		if (check_elf_ehdr(ehdr) == -1) {
+		if (check_elf_ehdr_magic(ehdr) == -1) {
 			continue;
 		}
         if (ivma->type != VMA_SELF) {

@@ -39,6 +39,11 @@ int ftrace_insert_trampoline_object(struct process *task, char *objpath)
 
     file_size(objpath, &size);
 
+    /**
+     * CentOS-Stream-9 has permission write to /tmp/
+     * however, Ubuntu doesn't.
+     *
+     */
     snprintf(objcopy, sizeof(objcopy), "/tmp/trampoline-%s", basename(objpath));
     //file_mktemp(objcopy);
 

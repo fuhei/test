@@ -106,7 +106,8 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy,
 
 	remote_fd = remote_open(task, objcopy, O_RDWR|O_CREAT|O_TRUNC, 0644);
     if (remote_fd <= 0) {
-        lwarning("remote open failed.\n");
+        lwarning("remote open failed. may pid %d don't have permission"\
+					"write to '/tmp/'\n", task->pid);
         return -1;
     }
 
@@ -155,7 +156,7 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy,
 				memcpy(obj_vma->obj_local, obj, obj_vma->obj_size);
 				munmap_file(obj, obj_vma->obj_size);
 				ldebug("OBJ name = %s, size = %d\n", obj_vma->name_, obj_vma->obj_size);
-				if (check_elf_ehdr((GElf_Ehdr *)obj_vma->obj_local)) {
+				if (check_elf_ehdr_len((GElf_Ehdr *)obj_vma->obj_local, obj_vma->obj_size)) {
 					lerror("Not ELF.\n", obj_vma->name_);
 					return -1;
 				}

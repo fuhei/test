@@ -332,6 +332,7 @@ int ftrace_trampoline_object_relocate(struct process *task)
 	GElf_Ehdr *ehdr;
 	GElf_Shdr *shdr, __unused *symhdr;
     int i;
+	ssize_t len;
 
     if (!task->ftrace_trampoline_obj) {
         lerror("Not load trampoline object yet.\n");
@@ -339,9 +340,10 @@ int ftrace_trampoline_object_relocate(struct process *task)
     }
 
 	ehdr = (void *)task->ftrace_trampoline_obj->obj_local;
+	len = task->ftrace_trampoline_obj->obj_size;
 	shdr = (void *)ehdr + ehdr->e_shoff;
 
-    if (check_elf_ehdr(ehdr)) {
+    if (check_elf_ehdr_len(ehdr, len)) {
         lerror("Not ELF.\n", task->ftrace_trampoline_obj->name_);
         return -1;
     }
