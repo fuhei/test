@@ -73,7 +73,12 @@ struct vma_struct {
     /* Read from /proc/PID/mem */
     char *dup_remote_mem;
 
-    /* Local file mmap */
+    /**
+     * Local file mmap
+     * only VMA_FTRACE_TRAMPOLINE, VMA_PATCH_OBJ, more.
+     * have local_elf_file.
+     */
+    //struct elf_file_struct *local_elf_file;
     char *obj_local;
     ssize_t obj_size;
 };

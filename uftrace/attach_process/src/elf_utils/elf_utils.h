@@ -28,12 +28,29 @@ struct elf_file_struct {
         GElf_Ehdr *ehdr;
         void *file_map;
     };
-    ssize_t file_len;
+    union {
+        unsigned long len;
+        ssize_t file_len;
+    };
+
+    /* see struct load_info */
+    GElf_Shdr *sechdrs;
+	char *secstrings, *strtab;
+    unsigned long symoffs, stroffs;
 
     GElf_Shdr *symtab_shdr;
     GElf_Sym *symtab;
     /* Root of struct elf_file_sym_struct.sym_node */
     struct rb_root syms_rb;
+
+    /* see struct load_info */
+    struct {
+		unsigned int
+            sym,    /* SHT_SYMTAB */
+            str    /* SHT_SYMTAB */
+            /* MORE */
+            ;
+	} index;
 };
 
 int test_elf(struct process *task);
