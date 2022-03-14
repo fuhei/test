@@ -150,17 +150,8 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy,
 			case VMA_FTRACE_TRAMPOLINE:
 				task->ftrace_trampoline_obj = obj_vma;
 				//print_vma(obj_vma);
-				char *obj = NULL;
 				obj_vma->local_elf_file = malloc(sizeof(struct elf_file_struct));
-				mmap_file_rdonly(objreal, (void **)&obj, &obj_vma->local_elf_file->obj_size);
-				obj_vma->local_elf_file->obj_local = malloc(obj_vma->local_elf_file->obj_size);
-				memcpy(obj_vma->local_elf_file->obj_local, obj, obj_vma->local_elf_file->obj_size);
-				munmap_file(obj, obj_vma->local_elf_file->obj_size);
-				ldebug("OBJ name = %s, size = %d\n", obj_vma->name_, obj_vma->local_elf_file->obj_size);
-				if (check_elf_ehdr_len((GElf_Ehdr *)obj_vma->local_elf_file->obj_local, obj_vma->local_elf_file->obj_size)) {
-					lerror("Not ELF.\n", obj_vma->name_);
-					return -1;
-				}
+				open_elf_file_and_copy(objreal, obj_vma->local_elf_file);
 				break;
 			case VMA_PATCH_OBJ:
 				//TODO: maybe is link list

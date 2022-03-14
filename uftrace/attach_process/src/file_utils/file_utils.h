@@ -10,7 +10,10 @@
  */
 #pragma once
 
+#include <stdbool.h>
+
 int mmap_file_rdonly(char *filename, void **pmap, ssize_t *plen);
+int mmap_file_and_copy(char *filename, void **pmap, ssize_t *plen);
 int munmap_file(char *map, ssize_t len);
 
 int file_size(char *file, ssize_t *size);

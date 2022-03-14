@@ -11,6 +11,7 @@
 #pragma once
 
 #include <gelf.h>
+#include <stdbool.h>
 #include "rbtree.h"
 
 struct process;
@@ -59,6 +60,7 @@ int test_elf(struct process *task);
 
 /* Open, Close */
 int open_elf_file(char *file, struct elf_file_struct *elf);
+int open_elf_file_and_copy(char *file, struct elf_file_struct *elf);
 
 /* Enum String */
 const char *elf_e_machine_string(GElf_Ehdr *ehdr);

@@ -22,19 +22,23 @@
 #include "file_utils.h"
 #include "compiler.h"
 
-int open_elf_file(char *file, struct elf_file_struct *elf)
+static int open_elf_file_internal(char *file, struct elf_file_struct *elf, bool newmalloc)
 {
     int ret, i;
 
 	/* Mmap absolute path of comm, like /usr/bin/ls */
-    ret = mmap_file_rdonly(file, &elf->file_map, &elf->file_len);
+	if (newmalloc) {
+		ret = mmap_file_and_copy(file, (void*)&elf->obj_local, &elf->obj_size);
+	} else {
+		ret = mmap_file_rdonly(file, &elf->file_map, &elf->file_len);
+	}
     if (ret != 0) {
         lerror("Fail mmap file %s\n", file);
         return -1;
     }
-	if (check_elf_ehdr_magic(elf->file_map) != 0) {
-		munmap_file(elf->file_map, elf->file_len);
-		elf->file_map = NULL;
+	if (check_elf_ehdr_magic(elf->ehdr) != 0) {
+		munmap_file((void*)elf->ehdr, elf->file_len);
+		elf->ehdr = NULL;
 		elf->file_len = 0;
 		return -1;
 	}
@@ -62,4 +66,14 @@ int open_elf_file(char *file, struct elf_file_struct *elf)
 	}
 
     return 0;
+}
+
+int open_elf_file(char *file, struct elf_file_struct *elf)
+{
+	return open_elf_file_internal(file, elf, false);
+}
+
+int open_elf_file_and_copy(char *file, struct elf_file_struct *elf)
+{
+	return open_elf_file_internal(file, elf, true);
 }
