@@ -76,11 +76,9 @@ struct vma_struct {
     /**
      * Local file mmap
      * only VMA_FTRACE_TRAMPOLINE, VMA_PATCH_OBJ, more.
-     * have local_elf_file.
+     * have local_elf_file. otherwise local_elf_file = NULL
      */
-    //struct elf_file_struct *local_elf_file;
-    char *obj_local;
-    ssize_t obj_size;
+    struct elf_file_struct *local_elf_file;
 };
 
 int test_maps_vma(struct process *task);

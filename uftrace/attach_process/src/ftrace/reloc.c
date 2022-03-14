@@ -269,7 +269,7 @@ static int ftrace_trampoline_object_resolve(struct process *task)
     GElf_Sym *symtab_addr;
 	char *sym_strs;
 
-	ehdr = (void *)task->ftrace_trampoline_obj->obj_local;
+	ehdr = (void *)task->ftrace_trampoline_obj->local_elf_file->obj_local;
 	shdr = (void *)ehdr + ehdr->e_shoff;
 
 	/* Relocation all section addr */
@@ -339,8 +339,8 @@ int ftrace_trampoline_object_relocate(struct process *task)
         return -1;
     }
 
-	ehdr = (void *)task->ftrace_trampoline_obj->obj_local;
-	len = task->ftrace_trampoline_obj->obj_size;
+	ehdr = (void *)task->ftrace_trampoline_obj->local_elf_file->obj_local;
+	len = task->ftrace_trampoline_obj->local_elf_file->obj_size;
 	shdr = (void *)ehdr + ehdr->e_shoff;
 
     if (check_elf_ehdr_len(ehdr, len)) {

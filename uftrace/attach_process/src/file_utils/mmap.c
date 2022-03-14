@@ -19,23 +19,28 @@
 #include "log.h"
 #include "file_utils.h"
 
-int mmap_file_rdonly(char *filename, void **pmap, ssize_t *plen)
+static int mmap_file_internal(char *filename, void **pmap, ssize_t *plen, int flags, int prot)
 {
     int fd;
 
-    fd = open(filename, O_RDONLY);
+    fd = open(filename, flags);
     if (fd <= 0) {
         lerror("open %s failed, %s\n", filename, strerror(errno));
         return -1;
     }
     file_size(filename, plen);
-    *pmap = mmap(NULL, *plen, PROT_READ, MAP_PRIVATE, fd, 0);
+    *pmap = mmap(NULL, *plen, prot, MAP_PRIVATE, fd, 0);
     close(fd);
 
     if (*pmap == MAP_FAILED) {
         return -1;
     }
     return 0;
+}
+
+int mmap_file_rdonly(char *filename, void **pmap, ssize_t *plen)
+{
+    return mmap_file_internal(filename, pmap, plen, O_RDONLY, PROT_READ);
 }
 
 int munmap_file(char *map, ssize_t len)

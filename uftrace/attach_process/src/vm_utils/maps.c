@@ -151,12 +151,13 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy,
 				task->ftrace_trampoline_obj = obj_vma;
 				//print_vma(obj_vma);
 				char *obj = NULL;
-				mmap_file_rdonly(objreal, (void **)&obj, &obj_vma->obj_size);
-				obj_vma->obj_local = malloc(obj_vma->obj_size);
-				memcpy(obj_vma->obj_local, obj, obj_vma->obj_size);
-				munmap_file(obj, obj_vma->obj_size);
-				ldebug("OBJ name = %s, size = %d\n", obj_vma->name_, obj_vma->obj_size);
-				if (check_elf_ehdr_len((GElf_Ehdr *)obj_vma->obj_local, obj_vma->obj_size)) {
+				obj_vma->local_elf_file = malloc(sizeof(struct elf_file_struct));
+				mmap_file_rdonly(objreal, (void **)&obj, &obj_vma->local_elf_file->obj_size);
+				obj_vma->local_elf_file->obj_local = malloc(obj_vma->local_elf_file->obj_size);
+				memcpy(obj_vma->local_elf_file->obj_local, obj, obj_vma->local_elf_file->obj_size);
+				munmap_file(obj, obj_vma->local_elf_file->obj_size);
+				ldebug("OBJ name = %s, size = %d\n", obj_vma->name_, obj_vma->local_elf_file->obj_size);
+				if (check_elf_ehdr_len((GElf_Ehdr *)obj_vma->local_elf_file->obj_local, obj_vma->local_elf_file->obj_size)) {
 					lerror("Not ELF.\n", obj_vma->name_);
 					return -1;
 				}

@@ -163,15 +163,15 @@ int main(int argc, char *argv[])
 
 		memcpy_to_remote(&test_p,
 					test_p.ftrace_trampoline_obj->start,
-					test_p.ftrace_trampoline_obj->obj_local,
-					test_p.ftrace_trampoline_obj->obj_size);
+					test_p.ftrace_trampoline_obj->local_elf_file->obj_local,
+					test_p.ftrace_trampoline_obj->local_elf_file->obj_size);
 
 #if 1
 		char buffer[2048] = {0};
 		memcpy_from_remote(&test_p,
 					buffer,
 					test_p.ftrace_trampoline_obj->start,
-					test_p.ftrace_trampoline_obj->obj_size);
+					test_p.ftrace_trampoline_obj->local_elf_file->obj_size);
 		GElf_Ehdr *__ehdr = (void*)buffer;
 		if (!check_elf_ehdr_magic(__ehdr)) {
 			lwarning("Buffer is ELF, %s\n", __ehdr->e_ident);

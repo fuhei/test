@@ -27,10 +27,12 @@ struct elf_file_struct {
     union {
         GElf_Ehdr *ehdr;
         void *file_map;
+        char *obj_local;
     };
     union {
         unsigned long len;
         ssize_t file_len;
+        ssize_t obj_size;
     };
 
     /* see struct load_info */
