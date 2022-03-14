@@ -72,16 +72,9 @@ static void usage_help(char *cmd)
 	exit(1);
 }
 
-void sig_handler(int signum)
+int parse_args(int argc, char *argv[])
 {
-	exit(1);
-}
-
-int main(int argc, char *argv[])
-{
-	int ret = -1;
 	pid_t pid = 0;
-	struct process test_p;
 
 	while (1) {
         /* getopt_long stores the option index here. */
@@ -138,7 +131,23 @@ int main(int argc, char *argv[])
 		lerror("Specify -f function option\n");
 	}
 
+	return 0;
+}
+
+
+void sig_handler(int signum)
+{
+	exit(1);
+}
+
+int main(int argc, char *argv[])
+{
+	int ret = -1;
+	struct process test_p;
+
 	signal(SIGINT, sig_handler);
+
+	parse_args(argc, argv);
 
 	/* Open target process */
 	ret = open_process(&test_p, default_args_opts.target_pid, &default_args_opts);
