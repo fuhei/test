@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 		struct elf_file_sym_struct *func_sym;
 		struct process *task = &test_p;
 
-		func_sym = elf_file_find_sym(task, "func2");
+		func_sym = elf_file_find_sym(&task->elf_file, "func2");
 
 		if (!func_sym) {
 			lerror("No find func_sym\n");

@@ -44,7 +44,7 @@ int test_elf(struct process *task)
 		print_elf_ehdr(ehdr);
 		print_elf_all_phdrs(ivma->dup_remote_mem, ehdr);
 		//print_elf_all_shdrs(ivma->task->elf_file.file_map, ehdr);
-		print_elf_all_syms(ivma->task->elf_file.file_map, ehdr);
+		print_elf_all_syms(&ivma->task->elf_file);
 	}
 
     return 0;

@@ -38,8 +38,8 @@ static void test_single_patch(struct process *task)
     struct vma_struct *func_vma, *trampoline_vma;
     struct elf_file_sym_struct *func_sym, *_trampoline_sym;
 
-	func_sym = elf_file_find_sym(task, "func2");
-	_trampoline_sym = elf_file_find_sym(task, "_trampoline");
+	func_sym = elf_file_find_sym(&task->elf_file, "func2");
+	_trampoline_sym = elf_file_find_sym(&task->elf_file, "_trampoline");
 
 	if (!_trampoline_sym || !func_sym) {
 		lerror("No find func_sym or _trampoline_sym\n");

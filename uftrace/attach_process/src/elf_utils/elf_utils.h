@@ -23,7 +23,7 @@ struct elf_file_sym_struct {
     struct rb_node sym_node;
 };
 
-/* For COMM ELF file */
+/* For COMM/OBJ ELF file */
 struct elf_file_struct {
     union {
         GElf_Ehdr *ehdr;
@@ -95,16 +95,15 @@ void print_elf_shdr(GElf_Shdr *shdr);
 void print_elf_all_shdrs(void *filemap, GElf_Ehdr *ehdr);
 
 /* Sym */
-int elf_for_each_sym(void *filemap, GElf_Ehdr *ehdr,
+int elf_for_each_sym(struct elf_file_struct *elf_file,
         void (*handler)(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg), void *arg);
 void print_elf_sym(GElf_Sym *shm);
-void print_elf_all_syms(void *filemap, GElf_Ehdr *ehdr);
+void print_elf_all_syms(struct elf_file_struct *elf_file);
 int is_undef_sym(GElf_Sym *sym);
 
     /* ELF file Sym */
-int elf_file_sym_rbtree_init(struct process *task);
 struct elf_file_sym_struct *
-elf_file_find_sym(struct process *task, char *symname);
+elf_file_find_sym(struct elf_file_struct *elf_file, char *symname);
 
 /* Rela */
 const char *elf_r_x86_64_name(int r);

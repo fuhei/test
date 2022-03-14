@@ -13,14 +13,54 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <malloc.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
 #include "util.h"
 #include "log.h"
+#include "process.h"
 #include "elf_utils.h"
 #include "file_utils.h"
 #include "compiler.h"
+
+
+static int __sym_struct_rb_insert_cmp_whole(struct rb_node *node, unsigned long key)
+{
+    struct elf_file_sym_struct *sym_struct = rb_entry(node, struct elf_file_sym_struct, sym_node);
+    struct elf_file_sym_struct *new = (struct elf_file_sym_struct *)key;
+
+	return strcmp(sym_struct->symname, new->symname);
+}
+
+
+static void __insert_sym_to_rbtree(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *sym, char *symname, void *arg)
+{
+	struct elf_file_struct *elf_file = (struct elf_file_struct *)arg;
+	struct elf_file_sym_struct *sym_struct;
+
+	/* Is enough? */
+	if (strlen(symname) <= 1)
+		return;
+
+	elf_file->symtab_shdr = shdr;
+	elf_file->symtab = symtab;
+
+	sym_struct = malloc(sizeof(struct elf_file_sym_struct));
+	if (!sym_struct) {
+		lerror("Alloc sym_struct failed\n");
+		exit(1);
+	}
+
+	/* Fill */
+	sym_struct->sym = sym;
+	sym_struct->symname = symname;
+
+	rb_insert_node(&elf_file->syms_rb, &sym_struct->sym_node,
+		__sym_struct_rb_insert_cmp_whole, (unsigned long)sym_struct);
+}
+
 
 static int open_elf_file_internal(char *file, struct elf_file_struct *elf, bool newmalloc)
 {
@@ -64,6 +104,10 @@ static int open_elf_file_internal(char *file, struct elf_file_struct *elf, bool 
 			file ?: "(missing .objinfo section or name field)");
 		return -1;
 	}
+
+	/* Rbtree of syms in COMM ELF */
+    rb_init(&elf->syms_rb);
+	elf_for_each_sym(elf, __insert_sym_to_rbtree, elf);
 
     return 0;
 }

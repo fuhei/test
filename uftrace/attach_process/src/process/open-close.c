@@ -139,21 +139,6 @@ static int __get_comm(struct process *task)
     return 0;
 }
 
-static int __open_comm_elf(struct process *task)
-{
-	int ret = -1;
-
-	/* Open COMM file */
-	ret = open_elf_file(task->comm, &task->elf_file);
-	if (ret != 0) {
-		return ret;
-	}
-
-	/* Rbtree of syms in COMM ELF */
-    elf_file_sym_rbtree_init(task);
-
-    return 0;
-}
 
 int process_exist(pid_t pid)
 {
@@ -169,6 +154,8 @@ int process_exist(pid_t pid)
 
 int open_process(struct process *p, pid_t pid, struct args_opts *args)
 {
+	int ret;
+
 	assert(p && "invalide process pointer.");
 
 	memset(p, 0x00, sizeof(struct process));
@@ -183,7 +170,12 @@ int open_process(struct process *p, pid_t pid, struct args_opts *args)
 		lerror("get %d comm failed.\n", pid);
 		return -1;
 	}
-	__open_comm_elf(p);
+
+	/* Open COMM file */
+	ret = open_elf_file(p->comm, &p->elf_file);
+	if (ret != 0) {
+		return ret;
+	}
 	if (args->check_trace_func &&
 		check_elf_ftrace_function(p->elf_file.file_map) != 0) {
 		lerror("Process %d(%s) not support ftrace.\n"\
