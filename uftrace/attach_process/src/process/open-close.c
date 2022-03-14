@@ -141,41 +141,12 @@ static int __get_comm(struct process *task)
 
 static int __open_comm_elf(struct process *task)
 {
-    int ret, i;
+	int ret = -1;
 
-	/* Mmap absolute path of comm, like /usr/bin/ls */
-    ret = mmap_file_rdonly(task->comm, &task->elf_file.file_map, &task->elf_file.file_len);
-    if (ret != 0) {
-        lerror("Fail mmap file %s\n", task->comm);
-        return -1;
-    }
-	if (check_elf_ehdr_magic(task->elf_file.file_map) != 0) {
-		munmap_file(task->elf_file.file_map, task->elf_file.file_len);
-		task->elf_file.file_map = NULL;
-		task->elf_file.file_len = 0;
-		return -1;
-	}
-
-	/* Get section header */
-	task->elf_file.sechdrs = (void *)task->elf_file.ehdr
-				+ task->elf_file.ehdr->e_shoff;
-	task->elf_file.secstrings = (void *)task->elf_file.ehdr
-		+ task->elf_file.sechdrs[task->elf_file.ehdr->e_shstrndx].sh_offset;
-
-	/* Find internal symbols and strings. */
-	for (i = 1; i < task->elf_file.ehdr->e_shnum; i++) {
-		if (task->elf_file.sechdrs[i].sh_type == SHT_SYMTAB) {
-			task->elf_file.index.sym = i;
-			task->elf_file.index.str = task->elf_file.sechdrs[i].sh_link;
-			task->elf_file.strtab = (char *)task->elf_file.ehdr
-				+ task->elf_file.sechdrs[task->elf_file.index.str].sh_offset;
-			break;
-		}
-	}
-	if (task->elf_file.index.sym == 0) {
-		lerror("%s: object has no symbols (stripped?)\n",
-			task->comm ?: "(missing .objinfo section or name field)");
-		return -1;
+	/* Open COMM file */
+	ret = open_elf_file(task->comm, &task->elf_file);
+	if (ret != 0) {
+		return ret;
 	}
 
 	/* Rbtree of syms in COMM ELF */
