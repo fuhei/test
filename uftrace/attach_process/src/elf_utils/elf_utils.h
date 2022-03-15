@@ -41,8 +41,6 @@ struct elf_file_struct {
 	char *secstrings, *strtab;
     unsigned long symoffs, stroffs;
 
-    GElf_Shdr *symtab_shdr;
-    GElf_Sym *symtab;
     /* Root of struct elf_file_sym_struct.sym_node */
     struct rb_root syms_rb;
 
@@ -50,7 +48,8 @@ struct elf_file_struct {
     struct {
 		unsigned int
             sym,    /* SHT_SYMTAB */
-            str    /* SHT_SYMTAB */
+            str,    /* SHT_SYMTAB */
+            dynsym  /* SHT_DYNSYM */
             /* MORE */
             ;
 	} index;

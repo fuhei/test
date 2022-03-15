@@ -44,9 +44,6 @@ static void __insert_sym_to_rbtree(GElf_Shdr *shdr, GElf_Sym *symtab, GElf_Sym *
 	if (strlen(symname) <= 1)
 		return;
 
-	elf_file->symtab_shdr = shdr;
-	elf_file->symtab = symtab;
-
 	sym_struct = malloc(sizeof(struct elf_file_sym_struct));
 	if (!sym_struct) {
 		lerror("Alloc sym_struct failed\n");
