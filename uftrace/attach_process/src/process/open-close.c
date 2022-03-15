@@ -177,7 +177,7 @@ int open_process(struct process *p, pid_t pid, struct args_opts *args)
 		return ret;
 	}
 	if (args->check_trace_func &&
-		check_elf_ftrace_function(p->elf_file.file_map) != 0) {
+		elf_check_ftrace_function(&p->elf_file) != 0) {
 		lerror("Process %d(%s) not support ftrace.\n"\
 						"Maybe compile source code with `-pg'.\n", p->pid, p->comm);
 		return -1;

@@ -77,7 +77,7 @@ char *elf_secname(GElf_Ehdr *ehdr, GElf_Shdr *shdr);
 int elf_sym_count_undefined(void *filemap, GElf_Ehdr *ehdr);
 
 /* Ftrace */
-int check_elf_ftrace_function(void *elf_file_mmap);
+int elf_check_ftrace_function(struct elf_file_struct *elf_file);
 
 /* Ehdr */
 int check_elf_ehdr_magic(GElf_Ehdr *ehdr);

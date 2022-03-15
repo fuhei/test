@@ -30,18 +30,18 @@ const static char __unused *___ftrace_funcs[] = {
 };
 
 
-int check_elf_ftrace_function(void *elf_file_mmap)
+int elf_check_ftrace_function(struct elf_file_struct *elf_file)
 {
     int i;
     GElf_Ehdr *ehdr;
     GElf_Shdr *shdr, *dynsym_shdr = NULL;
     GElf_Sym *isym;
 
-    char *file_map = (char*)elf_file_mmap;
+    char *file_map = (char*)elf_file->file_map;
 
     ehdr = (GElf_Ehdr *)file_map;
 
-    shdr = elf_file_mmap + ehdr->e_shoff;
+    shdr = (void*)file_map + ehdr->e_shoff;
     for (i = 0; i < ehdr->e_shnum; i++) {
         GElf_Shdr *ishdr = (GElf_Shdr *)(file_map + ehdr->e_shoff + i * ehdr->e_shentsize);
         if (ishdr->sh_type == SHT_DYNSYM) {
