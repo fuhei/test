@@ -93,8 +93,12 @@ static int open_elf_file_internal(char *file, struct elf_file_struct *elf, bool 
 			elf->index.str = elf->sechdrs[i].sh_link;
 			elf->strtab = (char *)elf->ehdr
 				+ elf->sechdrs[elf->index.str].sh_offset;
-			break;
-		}
+		} else if (elf->sechdrs[i].sh_type == SHT_DYNSYM) {
+			elf->index.dynsym = i;
+			elf->index.dynstr = elf->sechdrs[i].sh_link;
+			elf->dynstrtab  = (char *)elf->ehdr
+				+ elf->sechdrs[elf->index.dynstr].sh_offset;
+		} /* Others more */
 	}
 	if (elf->index.sym == 0) {
 		lerror("%s: object has no symbols (stripped?)\n",
