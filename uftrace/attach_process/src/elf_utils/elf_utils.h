@@ -15,6 +15,7 @@
 #include "rbtree.h"
 
 struct process;
+struct vma_struct;
 
 struct elf_file_sym_struct {
     GElf_Sym *sym;
@@ -44,6 +45,11 @@ struct elf_file_struct {
     /* Root of struct elf_file_sym_struct.sym_node */
     struct rb_root syms_rb;
 
+    /* VMA belongs to */
+    struct vma_struct *belongs_to_vma;
+
+    GElf_Sym *trampoline_sym;
+
     /* see struct load_info */
     struct {
 		unsigned int
@@ -54,6 +60,14 @@ struct elf_file_struct {
             /* MORE */
             ;
 	} index;
+};
+
+struct module {
+    char name[64];
+    /**
+     * MORE, TODO infomation
+     *
+     */
 };
 
 int test_elf(struct process *task);
@@ -69,6 +83,9 @@ const char *elf_p_type_string(GElf_Phdr *phdr);
 const char *elf_sh_name_string(GElf_Shdr *shdr);
 const char *elf_sh_type_string(GElf_Shdr *shdr);
 const char *elf_sh_flags_string(GElf_Shdr *shdr, void *buff, ssize_t buff_len);
+
+/* Section */
+unsigned int elf_find_sec(const struct elf_file_struct *elf, const char *name);
 
 /* Name String */
 char *elf_secname(GElf_Ehdr *ehdr, GElf_Shdr *shdr);

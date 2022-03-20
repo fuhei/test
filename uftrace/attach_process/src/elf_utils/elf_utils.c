@@ -122,3 +122,17 @@ int open_elf_file_and_copy(char *file, struct elf_file_struct *elf)
 {
 	return open_elf_file_internal(file, elf, true);
 }
+
+/* Find a section: 0 means not found. */
+unsigned int elf_find_sec(const struct elf_file_struct *elf, const char *name)
+{
+	unsigned int i;
+	for (i = 1; i < elf->ehdr->e_shnum; i++) {
+		GElf_Shdr *shdr = &elf->sechdrs[i];
+		/* Alloc bit cleared means "ignore it." */
+		if ((shdr->sh_flags & SHF_ALLOC)
+		    && strcmp(elf->secstrings + shdr->sh_name, name) == 0)
+			return i;
+	}
+	return 0;
+}

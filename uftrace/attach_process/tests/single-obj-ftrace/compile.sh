@@ -15,8 +15,8 @@ gcc main.c -pg -g -ggdb\
 	-o main.out
 
 # Trampoline
-nasm -felf64 hello.asm
-nasm -felf64 exit.asm
+#nasm -felf64 hello.asm
+#nasm -felf64 exit.asm
 gcc -c trampoline0-pure-func.c
 gcc -c trampoline1-exit.c
 gcc -c trampoline1-printf.c

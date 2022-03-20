@@ -25,4 +25,18 @@ void test_ftrace(struct process *task);
 
 
 int ftrace_insert_trampoline_object(struct process *task, char *objpath);
+
+#if 0
 int ftrace_trampoline_object_relocate(struct process *task);
+#else
+int apply_relocate_add(Elf64_Shdr *sechdrs,
+		   const char *strtab,
+		   unsigned int symindex,
+		   unsigned int relsec,
+		   struct process *me);
+int apply_relocate(Elf64_Shdr *sechdrs,
+		   const char *strtab,
+		   unsigned int symindex,
+		   unsigned int relsec,
+		   struct process *me);
+#endif

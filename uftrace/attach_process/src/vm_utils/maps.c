@@ -147,16 +147,25 @@ int remote_insert_object(struct process *task, char *objreal, char *objcopy,
 		obj_vma = handler_arg.insert_vma;
 
 		switch (type) {
-			case VMA_FTRACE_TRAMPOLINE:
-				task->ftrace_trampoline_obj = obj_vma;
-				//print_vma(obj_vma);
-				obj_vma->local_elf_file = malloc(sizeof(struct elf_file_struct));
-				open_elf_file_and_copy(objreal, obj_vma->local_elf_file);
-				break;
-			case VMA_PATCH_OBJ:
-				//TODO: maybe is link list
-			default:
-				break;
+		/* Ftrace */
+		case VMA_FTRACE_TRAMPOLINE:
+			task->ftrace_trampoline_obj = obj_vma;
+			//print_vma(obj_vma);
+			obj_vma->local_elf_file = malloc(sizeof(struct elf_file_struct));
+			obj_vma->local_elf_file->belongs_to_vma = obj_vma;
+			open_elf_file_and_copy(objreal, obj_vma->local_elf_file);
+
+			/**
+			 * Blacklist and sig check maybe here.
+			 *
+			 */
+
+			break;
+		/* Patch */
+		case VMA_PATCH_OBJ:
+			//TODO: maybe is link list
+		default:
+			break;
 		}
 
 	} else {

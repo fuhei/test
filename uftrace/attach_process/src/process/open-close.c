@@ -52,6 +52,11 @@ static int __create_vma_handler(struct vma_struct * tmpvma, void *arg)
 			vma->prot & PROT_EXEC) {
 			task->libc_base = vma;
 			linfo("libc base = %lx\n", task->libc_base);
+			/* Load libc ELF file */
+
+			vma->local_elf_file = malloc(sizeof(struct elf_file_struct));
+			vma->local_elf_file->belongs_to_vma = vma;
+			open_elf_file_and_copy(vma->name_, vma->local_elf_file);
 		}
 	} else if (!strcmp(vma->name_, "[heap]")) {
 		vma->type = VMA_HEAP;

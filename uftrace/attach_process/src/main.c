@@ -168,12 +168,7 @@ int main(int argc, char *argv[])
 		test_maps_vma(&test_p);
 
 		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
-		ftrace_trampoline_object_relocate(&test_p);
 
-		memcpy_to_remote(&test_p,
-					test_p.ftrace_trampoline_obj->start,
-					test_p.ftrace_trampoline_obj->local_elf_file->obj_local,
-					test_p.ftrace_trampoline_obj->local_elf_file->obj_size);
 
 #if 1
 		char buffer[2048] = {0};
@@ -198,9 +193,10 @@ int main(int argc, char *argv[])
 			lerror("No find func_sym\n");
 			exit(1);
 		}
-		lwarning("func_sym: %16lx\n", func_sym->sym->st_value);
+		unsigned long trampoline_st_value = task->ftrace_trampoline_obj->local_elf_file->trampoline_sym->st_value;
+		*(unsigned int *)(code + 1) = (unsigned int)(trampoline_st_value - (func_sym->sym->st_value) - 5);
 
-		*(unsigned int *)(code + 1) = (unsigned int)(0x405040 - (func_sym->sym->st_value) - 9);
+		lwarning("func_sym: %16lx - %16lx\n", func_sym->sym->st_value, trampoline_st_value);
 
 		/* Get original code */
 		memcpy_from_remote(task, &orginal_code, func_sym->sym->st_value + 4, sizeof(orginal_code));
