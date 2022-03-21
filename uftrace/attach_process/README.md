@@ -47,3 +47,4 @@ Dump of assembler code for function print_hello:
 # Links
 
 * [libcareplus](https://github.com/rtoax/libcareplus)
+* 开发初始发布版本后，将同步到仓库 [upatch](https://github.com/Rtoax/upatch)
