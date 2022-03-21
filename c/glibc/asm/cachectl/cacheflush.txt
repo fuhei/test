@@ -1,0 +1,15 @@
+cacheflush(2)
+=======================
+
+难道说， x84不支持吗?
+
+```
+[rongtao@localhost linux]$ grep -rn SYSCALL_DEFINE | grep cache
+grep: .git/objects/pack/pack-8ecea6a4a7edc77ad22a271fb6fbb6034b79a4fc.pack: binary file matches
+arch/arc/mm/cache.c:1050:SYSCALL_DEFINE3(cacheflush, uint32_t, start, uint32_t, sz, uint32_t, flags)
+arch/csky/mm/syscache.c:9:SYSCALL_DEFINE3(cacheflush,
+arch/mips/kernel/syscall.c:239:SYSCALL_DEFINE3(cachectl, char *, addr, int, nbytes, int, op)
+arch/mips/mm/cache.c:72:SYSCALL_DEFINE3(cacheflush, unsigned long, addr, unsigned long, bytes,
+arch/nds32/kernel/sys_nds32.c:29:SYSCALL_DEFINE3(cacheflush, unsigned int, start, unsigned int, end, int, cache)
+arch/riscv/kernel/sys_riscv.c:63:SYSCALL_DEFINE3(riscv_flush_icache, uintptr_t, start, uintptr_t, end,
+```
