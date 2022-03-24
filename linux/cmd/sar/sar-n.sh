@@ -11,4 +11,7 @@
 sudo sar -n SOCK | more
 
 # 每秒 打印 TCP 统计信息
+# 测试
+#   $ iperf3 -A 0 -s
+#   $ iperf3 -A 0 -c localhost
 sudo sar -n TCP 1
