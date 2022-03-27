@@ -193,8 +193,11 @@ int main(int argc, char *argv[])
 			lerror("No find func_sym\n");
 			exit(1);
 		}
-		unsigned long trampoline_st_value = task->ftrace_trampoline_obj->local_elf_file->trampoline_sym->st_value;
-		*(unsigned int *)(code + 1) = (unsigned int)(trampoline_st_value - (func_sym->sym->st_value) - 5);
+		unsigned long trampoline_st_value =
+			task->ftrace_trampoline_obj->local_elf_file->trampoline_sym->st_value +
+			task->ftrace_trampoline_obj->start -
+			(unsigned long )task->ftrace_trampoline_obj->local_elf_file->ehdr;
+		*(unsigned int *)(code + 1) = (unsigned int)(trampoline_st_value - (func_sym->sym->st_value) - 9);
 
 		lwarning("func_sym: %16lx - %16lx\n", func_sym->sym->st_value, trampoline_st_value);
 
