@@ -23,6 +23,6 @@ int main(int argc, char *argv[])
 	sleep(2);
 	while (1) {
 		func1();
-		sleep(1);
+		sleep(50);
 	}
 }

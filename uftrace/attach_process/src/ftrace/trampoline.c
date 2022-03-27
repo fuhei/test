@@ -141,7 +141,7 @@ static int apply_relocations(struct process *task, struct elf_file_struct *elf)
 
         if (elf->sechdrs[i].sh_type == SHT_RELA)
 			err = apply_relocate_add(elf->sechdrs, elf->strtab,
-						 elf->index.sym, i, task);
+						 elf->index.sym, i, task, elf);
         else if (elf->sechdrs[i].sh_type == SHT_REL)
 			err = apply_relocate(elf->sechdrs, elf->strtab,
 					     elf->index.sym, i, task);

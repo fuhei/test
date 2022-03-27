@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 		ftrace_insert_trampoline_object(&test_p, default_args_opts.ftrace_object);
 
 
-#if 1
+#if 0
 		char buffer[2048] = {0};
 		memcpy_from_remote(&test_p,
 					buffer,
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 			lwarning("Buffer is ELF, %s\n", __ehdr->e_ident);
 		}
 #endif
-#if 0
+#if 1
 		unsigned char orginal_code[5];
 		unsigned char code[] = {INST_CALLQ, 0x00, 0x00, 0x00, 0x00};
 		struct elf_file_sym_struct *func_sym;
@@ -205,6 +205,7 @@ int main(int argc, char *argv[])
 		memcpy_to_remote(task, func_sym->sym->st_value + 4, &code, sizeof(code));
 
 		process_detach(task);
+		exit(1); // test
 
 		/* Make target process running */
 		sleep(10);

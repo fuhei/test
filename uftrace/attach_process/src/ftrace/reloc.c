@@ -29,7 +29,8 @@ static int __apply_relocate_add(Elf64_Shdr *sechdrs,
 		   unsigned int symindex,
 		   unsigned int relsec,
 		   struct process *task,
-		   void *(*write_func)(void *dest, const void *src, size_t len))
+		   void *(*write_func)(void *dest, const void *src, size_t len),
+		   struct elf_file_struct *elf)
 {
 	unsigned int i;
 	Elf64_Rela *rel = (void *)sechdrs[relsec].sh_addr;
@@ -50,10 +51,11 @@ static int __apply_relocate_add(Elf64_Shdr *sechdrs,
 		sym = (Elf64_Sym *)sechdrs[symindex].sh_addr
 			+ ELF64_R_SYM(rel[i].r_info);
 
+		val = sym->st_value + rel[i].r_addend;
+
 		ldebug("type %d st_value %Lx r_addend %Lx loc %Lx\n",
 		       (int)ELF64_R_TYPE(rel[i].r_info),
 		       sym->st_value, rel[i].r_addend, (uint64_t)loc);
-		val = sym->st_value + rel[i].r_addend;
 
 		switch (ELF64_R_TYPE(rel[i].r_info)) {
 		case R_X86_64_NONE:
@@ -135,13 +137,14 @@ int apply_relocate_add(Elf64_Shdr *sechdrs,
 		   const char *strtab,
 		   unsigned int symindex,
 		   unsigned int relsec,
-		   struct process *task)
+		   struct process *task,
+		   struct elf_file_struct *elf)
 {
 	int ret;
 	void *(*write_fn)(void *, const void *, size_t) = memcpy;
 
 	ret = __apply_relocate_add(sechdrs, strtab, symindex, relsec, task,
-				   write_fn);
+				   write_fn, elf);
 	return ret;
 }
 

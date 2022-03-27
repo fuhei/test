@@ -33,7 +33,8 @@ int apply_relocate_add(Elf64_Shdr *sechdrs,
 		   const char *strtab,
 		   unsigned int symindex,
 		   unsigned int relsec,
-		   struct process *me);
+		   struct process *me,
+		   struct elf_file_struct *elf);
 int apply_relocate(Elf64_Shdr *sechdrs,
 		   const char *strtab,
 		   unsigned int symindex,
