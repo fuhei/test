@@ -13,7 +13,7 @@ if [ $# -lt 1 ]; then
 	echo ">>>>> Attach PID $(pidof main.out) <<<<<"
 	./main.out &
 	sleep 1
-	../../build/pattach -p $(pidof main.out) -f func2 --log-level 7 --ftrace-object ./trampoline0-pure-func.o
+	../../build/pattach -p $(pidof main.out) -f func2 --log-level 7 --ftrace-object ./trampoline1-exit.o
 else
 	../../build/pattach $*
 fi
