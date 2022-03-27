@@ -51,7 +51,7 @@ static int __apply_relocate_add(Elf64_Shdr *sechdrs,
 		sym = (Elf64_Sym *)sechdrs[symindex].sh_addr
 			+ ELF64_R_SYM(rel[i].r_info);
 
-		val = sym->st_value + rel[i].r_addend;
+		val = sym->st_value + rel[i].r_addend + elf->belongs_to_vma->start - (unsigned long)elf->ehdr;
 
 		ldebug("type %d st_value %Lx r_addend %Lx loc %Lx "\
 				"local start %Lx target start %Lx value %Lx\n",
