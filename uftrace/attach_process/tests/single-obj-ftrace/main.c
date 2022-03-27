@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
 {
 	sleep(2);
 	printf("--- Child mmap ---\n");
+	printf("func2  = %p, %ld\n", func2, (unsigned long )func2);
+	printf("printf = %p, %ld\n", printf, (unsigned long )printf);
 	sleep(2);
 	while (1) {
 		func1();

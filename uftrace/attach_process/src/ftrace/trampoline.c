@@ -109,7 +109,7 @@ static int simplify_symbols(struct process *task,
             sym[i].st_value = elfsym->sym->st_value + task->libc_base->start;
 			break;
         default:
-            secbase = elf->sechdrs[sym[i].st_shndx].sh_addr - (unsigned long)elf->ehdr + target_start_addr;
+            secbase = elf->sechdrs[sym[i].st_shndx].sh_addr;
 			sym[i].st_value += secbase;
             ldebug("Handle symbol %s(%s) %lx\n",
                 name, elf_sh_name_string(symsec), sym[i].st_value);
