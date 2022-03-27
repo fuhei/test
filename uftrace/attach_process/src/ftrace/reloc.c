@@ -53,9 +53,13 @@ static int __apply_relocate_add(Elf64_Shdr *sechdrs,
 
 		val = sym->st_value + rel[i].r_addend;
 
-		ldebug("type %d st_value %Lx r_addend %Lx loc %Lx\n",
+		ldebug("type %d st_value %Lx r_addend %Lx loc %Lx "\
+				"local start %Lx target start %Lx value %Lx\n",
 		       (int)ELF64_R_TYPE(rel[i].r_info),
-		       sym->st_value, rel[i].r_addend, (uint64_t)loc);
+		       sym->st_value, rel[i].r_addend, (uint64_t)loc,
+			   (unsigned long)elf->ehdr,
+			   elf->belongs_to_vma->start,
+			   val);
 
 		switch (ELF64_R_TYPE(rel[i].r_info)) {
 		case R_X86_64_NONE:

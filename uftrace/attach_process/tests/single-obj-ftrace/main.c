@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 	printf("--- Child mmap ---\n");
 	printf("func2  = %p, %ld\n", func2, (unsigned long )func2);
 	printf("printf = %p, %ld\n", printf, (unsigned long )printf);
-	sleep(2);
+	sleep(20);
 	while (1) {
 		func1();
-		sleep(50);
+		sleep(1);
 	}
 }
