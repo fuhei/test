@@ -26,6 +26,7 @@ int main(int argc, char *argv[])
 	printf("--- Child mmap ---\n");
 	printf("func2  = %p, %ld\n", func2, (unsigned long )func2);
 	printf("printf = %p, %ld\n", printf, (unsigned long )printf);
+	printf("exit   = %p, %ld\n", exit, (unsigned long )exit);
 	sleep(20);
 	while (1) {
 		func1();

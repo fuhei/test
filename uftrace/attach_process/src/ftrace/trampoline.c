@@ -104,9 +104,8 @@ static int simplify_symbols(struct process *task,
         case SHN_UNDEF:
 			lwarning("Handle SHN_UNDEF symbol %s\n", name);
             elfsym = elf_file_find_sym(task->libc_base->local_elf_file, name);
-            lwarning("Find elfsym = %s, %lx\n", elfsym->symname,
-                elfsym->sym->st_value + task->libc_base->start);
             sym[i].st_value = elfsym->sym->st_value + task->libc_base->start;
+            lwarning("Find elfsym = %s, %lx\n", elfsym->symname, sym[i].st_value);
 			break;
         default:
             secbase = elf->sechdrs[sym[i].st_shndx].sh_addr;
