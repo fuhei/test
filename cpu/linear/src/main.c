@@ -33,6 +33,8 @@ struct pthread_args {
 struct args_opt {
     int min_cpu;
     int max_cpu;
+    int interval_cpu;
+    int nr_thread; // 用 max_cpu, min_cpu, interval_cpu 计算得到
     pthread_t *threadids;
     struct pthread_args **threads_args;
     int cacheline_size;
@@ -48,6 +50,7 @@ struct args_opt {
 struct args_opt default_args = {
     .min_cpu = 0,
     .max_cpu = 0,
+    .interval_cpu = 1,
     .threadids = NULL,
     .threads_args = NULL,
     .cacheline_size = 64,
@@ -103,6 +106,12 @@ static void usage(int argc, char *argv[])
     fprintf(stderr, " -h, --help        Show help info.\n");
     fprintf(stderr, " -i, --min-cpu     Min cpu number to test, default 0.\n");
     fprintf(stderr, " -a, --max-cpu     Max cpu number to test, default 0.\n");
+    fprintf(stderr, " -I, --cpu-interval Interval of CPUs, default 1.\n"\
+                    "                   Such as \n"\
+                    "                       --min-cpu = 0\n"\
+                    "                       --max-cpu = 10,\n"\
+                    "                       --cpu-interval = 3"\
+                    "                    the cpu list is 0, 3, 6, 9.\n");
     fprintf(stderr, " -t, --test        Test type, default: arithmetic.\n"\
                     "                    [arithmetic|n-queen|pi]");
     fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
@@ -120,6 +129,7 @@ void parse_args(int argc, char *argv[])
         {"help", no_argument, 0, 'h'},
         {"min-cpu", required_argument, 0, 'i'},
         {"max-cpu", required_argument, 0, 'a'},
+        {"cpu-interval", required_argument, 0, 'I'},
         {"test", required_argument, 0, 't'},
         {"test-loop", required_argument, 0, 'n'},
         {"cache-line", required_argument, 0, 'c'},
@@ -128,7 +138,7 @@ void parse_args(int argc, char *argv[])
 
     while (1) {
         int option_index = 0;
-        int cmd = getopt_long(argc, argv, "i:a:c:t:n:h", options, &option_index);
+        int cmd = getopt_long(argc, argv, "i:a:I:c:t:n:h", options, &option_index);
         if (cmd == -1) {
             break;
         }
@@ -141,6 +151,9 @@ void parse_args(int argc, char *argv[])
             break;
         case 'a':
             args->max_cpu = atoi(optarg);
+            break;
+        case 'I':
+            args->interval_cpu = atoi(optarg);
             break;
         case 'c':
             args->cacheline_size = atoi(optarg);
@@ -189,6 +202,11 @@ void parse_args(int argc, char *argv[])
             exit(1);
         }
     }
+
+    args->nr_thread = (args->max_cpu - args->min_cpu + (args->interval_cpu ))/args->interval_cpu;
+
+    //fprintf(stdout, "N thread = %d\n", args->nr_thread);
+    //exit(1);
 }
 
 /**
@@ -200,7 +218,7 @@ void analyze_result(struct args_opt *args)
     int i;
     unsigned long total_nsec;
 
-    int Ncpu = args->max_cpu - args->min_cpu + 1;
+    int Ncpu = args->nr_thread;
 
     fprintf(stdout, "\033[1;7m%-8s %-8s %-10s %-10s %-10s\033[m\n",
             "CPU", "NUMA", "SEC", "MSEC", "USEC");
@@ -267,9 +285,9 @@ static void *thread_routine(void *arg)
  */
 void create_threads(struct args_opt *args)
 {
-    int i;
+    int i, j;
 
-    int nr_thread = args->max_cpu - args->min_cpu + 1;
+    int nr_thread = args->nr_thread;
 
     args->threadids = malloc(sizeof(pthread_t)*nr_thread);
     assert(args->threadids && "Malloc Fatal.");
@@ -277,9 +295,9 @@ void create_threads(struct args_opt *args)
     args->threads_args = malloc(sizeof(struct pthread_args *) * nr_thread);
     assert(args->threads_args && "Malloc Fatal.");
 
-    for (i = args->min_cpu; i <= args->max_cpu; i++) {
+    for (j = 0, i = args->min_cpu; i <= args->max_cpu; j++, i += args->interval_cpu) {
         int cpu = i;
-        int idx = i - args->min_cpu;
+        int idx = j;
         int cache_line_size = args->cacheline_size;
 
         args->threads_args[idx] = aligned_alloc(cache_line_size, sizeof(struct pthread_args));
@@ -295,16 +313,14 @@ void create_threads(struct args_opt *args)
         pthread_create(&args->threadids[idx], NULL, thread_routine, thread_arg);
     }
 
-    for (i = args->min_cpu; i <= args->max_cpu; i++) {
-        int idx = i - args->min_cpu;
-        pthread_join(args->threadids[idx], NULL);
+    for (i = 0; i < nr_thread; i++) {
+        pthread_join(args->threadids[i], NULL);
     }
 
     analyze_result(args);
 
-    for (i = args->min_cpu; i <= args->max_cpu; i++) {
-        int idx = i - args->min_cpu;
-        free(args->threads_args[idx]);
+    for (i = 0; i < nr_thread; i++) {
+        free(args->threads_args[i]);
     }
     free(args->threads_args);
     free(args->threadids);
