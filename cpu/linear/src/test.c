@@ -15,6 +15,7 @@
 
 extern struct test_struct test_arithmetic;
 extern struct test_struct test_N_queen;
+extern struct test_struct test_pi;
 
 void test_execute(enum test_type type, int loop)
 {
@@ -26,6 +27,9 @@ void test_execute(enum test_type type, int loop)
         break;
     case TEST_N_QUEEN:
         test = &test_N_queen;
+        break;
+    case TEST_PI:
+        test = &test_pi;
         break;
     default:
         fprintf(stderr, "No test type %d, check -t, --type argument.\n", type);

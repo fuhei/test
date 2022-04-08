@@ -11,11 +11,13 @@
 #pragma once
 
 enum test_type {
-    TEST_ARITHMETIC, //简单算术运算
-    TEST_N_QUEEN,   // N 皇后
+    TEST_ARITHMETIC,    //简单算术运算
+    TEST_N_QUEEN,       // N 皇后
+    TEST_PI,            // PI 计算
     TEST_NUM,
 };
 
+#define _un_used __attribute__((unused))
 #define _no_optimize __attribute__((optimize("-O0")))
 
 struct test_struct {
