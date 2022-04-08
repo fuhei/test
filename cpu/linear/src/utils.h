@@ -15,11 +15,7 @@ enum test_type {
     TEST_NUM,
 };
 
-#if __GNUC__ >= 10
 #define _no_optimize __attribute__((optimize("-O0")))
-#else
-#define _no_optimize
-#endif
 
 struct test_struct {
     void *arg;

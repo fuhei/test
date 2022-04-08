@@ -14,13 +14,13 @@
 
 
 static void _no_optimize
-init_arithmetic(struct test_struct*, void *arg)
+init_arithmetic(struct test_struct* test, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_arithmetic(struct test_struct*, void *arg)
+invoke_arithmetic(struct test_struct* test, void *arg)
 {
     unsigned long ul = 100;
     float f = 100;
@@ -37,7 +37,7 @@ invoke_arithmetic(struct test_struct*, void *arg)
 }
 
 static void _no_optimize
-release_arithmetic(struct test_struct*, void *arg)
+release_arithmetic(struct test_struct* test, void *arg)
 {
 
 }
