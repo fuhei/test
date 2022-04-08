@@ -12,6 +12,7 @@
 
 enum test_type {
     TEST_ARITHMETIC, //简单算术运算
+    TEST_N_QUEEN,   // N 皇后
     TEST_NUM,
 };
 

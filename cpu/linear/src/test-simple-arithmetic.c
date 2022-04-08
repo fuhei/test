@@ -1,5 +1,5 @@
 /**
- * @file simple-arithmetic.c
+ * @file test-simple-arithmetic.c
  * @author Rong Tao <rongtao@cestc.cn>
  * @brief 简单算术计算
  * @version 0.1

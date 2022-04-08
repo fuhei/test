@@ -104,7 +104,7 @@ static void usage(int argc, char *argv[])
     fprintf(stderr, " -i, --min-cpu     Min cpu number to test, default 0.\n");
     fprintf(stderr, " -a, --max-cpu     Max cpu number to test, default 0.\n");
     fprintf(stderr, " -t, --test        Test type, default: arithmetic.\n"\
-                    "                    [arithmetic|pi|]");
+                    "                    [arithmetic|n-queen|]");
     fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
     exit(1);
@@ -148,12 +148,20 @@ void parse_args(int argc, char *argv[])
         case 't':
             if (!strcmp(optarg, "arithmetic")) {
                 args->test_type = TEST_ARITHMETIC;
+            } else if (!strcmp(optarg, "n-queen")) {
+                args->test_type = TEST_N_QUEEN;
+                fprintf(stderr, "Not support n-queen yet.\n");
+
             } else {
-                //TODO: MORE:
+                fprintf(stderr, "Specify -t, --type arg invalid.\n");
+                usage(argc, argv);
             }
             break;
         case 'n':
             args->test_loop = strtoul(optarg, NULL, 0);
+            break;
+        case '?':
+            abort();
             break;
         default:
             fprintf(stderr, "Unknown %s, cmd = %d(%c)\n", optarg, cmd, cmd);
