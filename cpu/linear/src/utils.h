@@ -28,6 +28,9 @@ enum test_type {
 #define _un_used __attribute__((unused))
 #define _no_optimize __attribute__((optimize("-O0")))
 
+#define TEST_ARITHMETIC_LOOP    1000000000
+#define TEST_PI_LOOP    10000000
+
 struct test_struct {
     void *arg;
     /* 定义函数时，清添加 _no_optimize 属性 */

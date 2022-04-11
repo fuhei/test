@@ -27,7 +27,7 @@ invoke_float_add(struct test_struct* test, void *arg)
     float a, b, c;
     a = b = c = 1;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a + b;
     }
     //printf("add\n");
@@ -63,7 +63,7 @@ invoke_float_sub(struct test_struct* test, void *arg)
     b = 1;
     c = 0;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a - b;
     }
     //printf("sub\n");
@@ -96,7 +96,7 @@ invoke_float_mul(struct test_struct* test, void *arg)
     float a, b, c;
     a = b = c = 1;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a * b;
     }
     //printf("mul\n");
@@ -134,7 +134,7 @@ invoke_float_div(struct test_struct* test, void *arg)
     b = 2;
     c = 1;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a / b;
     }
     //printf("div\n");

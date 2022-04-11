@@ -67,7 +67,7 @@ init_pi(struct test_struct* test, void *arg)
 static void _no_optimize
 invoke_pi(struct test_struct* test, void *arg)
 {
-    double _un_used pi = caculate_pi(10000000);
+    double _un_used pi = caculate_pi(TEST_PI_LOOP);
     //printf("pi = %lf\n", pi);
 }
 

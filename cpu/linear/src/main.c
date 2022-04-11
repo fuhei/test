@@ -57,7 +57,7 @@ struct args_opt default_args = {
     .threads_args = NULL,
     .cacheline_size = 64,
     .test_type = TEST_ARITHMETIC,
-    .test_loop = 10000,
+    .test_loop = 1,
 };
 
 struct numa_node_info {
@@ -125,7 +125,12 @@ static void usage(int argc, char *argv[])
                     "                    `arithmetic,float,add` to test float subtraction\n"\
                     "                    `arithmetic,float,add` to test float multiplication\n"\
                     "                    `arithmetic,float,add` to test float division\n");
-    fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
+    fprintf(stderr, " -n, --test-loop   Max test loop, default %ld.\n"\
+                    "                    `arithmetic default loop is %ld\n"\
+                    "                    `pi default loop(accurate) is %ld\n",
+                        default_args.test_loop,
+                        TEST_ARITHMETIC_LOOP * default_args.test_loop,
+                        TEST_PI_LOOP * default_args.test_loop);
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
     fprintf(stderr, "\n");
     exit(1);

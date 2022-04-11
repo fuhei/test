@@ -26,7 +26,7 @@ invoke_integer_add(struct test_struct* test, void *arg)
     int a, b, c, i;
     a = b = c = 1;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a + b;
     }
 }
@@ -60,7 +60,7 @@ invoke_integer_sub(struct test_struct* test, void *arg)
     b = 1;
     c = 0;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a - b;
     }
     //printf("sub\n");
@@ -92,7 +92,7 @@ invoke_integer_mul(struct test_struct* test, void *arg)
     int a, b, c, i;
     a = b = c = 1;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a * b;
     }
     //printf("mul\n");
@@ -129,7 +129,7 @@ invoke_integer_div(struct test_struct* test, void *arg)
     b = 2;
     c = 1;
 
-    for (i = 0; i < 1000000000; i++) {
+    for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a / b;
     }
     //printf("div\n");
