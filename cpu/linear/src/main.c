@@ -65,10 +65,21 @@ struct numa_node_info {
     struct bitmask cpumask;
 };
 
+struct cache_info {
+    struct {
+        int assoc;
+        int size;
+        int linesize;
+    } l1d, l1i, l2, l3, l4;
+};
+
+
 struct system_info {
     int nr_numa_node;
     int num_possible_cpus;
     struct numa_node_info *numainfos;
+    int nr_cache_level;
+    struct cache_info cache_info;
 };
 
 
@@ -81,6 +92,7 @@ static struct system_info systeminfo;
 void get_system_info(void)
 {
     int i;
+    struct cache_info *cache = &systeminfo.cache_info;
 
     /* NUMA 信息 */
     systeminfo.nr_numa_node = numa_max_node() + 1;
@@ -96,6 +108,18 @@ void get_system_info(void)
 
     //fprintf(stdout, "Number of NUMA NODE %d\n", systeminfo.nr_numa_node);
     //fprintf(stdout, "Max Number of CPU %d\n", systeminfo.num_possible_cpus);
+#define READ_CACHE(to, name) \
+    cache->to.assoc = sysconf(_SC_##name##_ASSOC);    \
+    cache->to.size = sysconf(_SC_##name##_SIZE);  \
+    cache->to.linesize = sysconf(_SC_##name##_LINESIZE);
+
+    READ_CACHE(l1d, LEVEL1_DCACHE);
+    READ_CACHE(l1i, LEVEL1_ICACHE);
+    READ_CACHE(l2, LEVEL2_CACHE);
+    READ_CACHE(l3, LEVEL3_CACHE);
+    READ_CACHE(l4, LEVEL4_CACHE);
+
+#undef READ_CACHE
 
 }
 
