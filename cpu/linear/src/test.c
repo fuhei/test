@@ -34,6 +34,18 @@ void test_execute(enum test_type type, int loop)
     case TEST_ARITHMETIC_INT_DIV:
         test = &test_integer_div;
         break;
+    case TEST_ARITHMETIC_FLOAT_ADD:
+        test = &test_float_add;
+        break;
+    case TEST_ARITHMETIC_FLOAT_SUB:
+        test = &test_float_sub;
+        break;
+    case TEST_ARITHMETIC_FLOAT_MUL:
+        test = &test_float_mul;
+        break;
+    case TEST_ARITHMETIC_FLOAT_DIV:
+        test = &test_float_div;
+        break;
     case TEST_N_QUEEN:
         test = &test_N_queen;
         break;

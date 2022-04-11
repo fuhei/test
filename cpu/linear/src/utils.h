@@ -16,6 +16,10 @@ enum test_type {
     TEST_ARITHMETIC_INT_SUB,    //整形减法
     TEST_ARITHMETIC_INT_MUL,    //整形乘法
     TEST_ARITHMETIC_INT_DIV,    //整形除法
+    TEST_ARITHMETIC_FLOAT_ADD,    //整形加法
+    TEST_ARITHMETIC_FLOAT_SUB,    //整形减法
+    TEST_ARITHMETIC_FLOAT_MUL,    //整形乘法
+    TEST_ARITHMETIC_FLOAT_DIV,    //整形除法
     TEST_N_QUEEN,       // N 皇后
     TEST_PI,            // PI 计算
     TEST_NUM,
@@ -36,6 +40,10 @@ extern struct test_struct test_integer_add;
 extern struct test_struct test_integer_sub;
 extern struct test_struct test_integer_mul;
 extern struct test_struct test_integer_div;
+extern struct test_struct test_float_add;
+extern struct test_struct test_float_sub;
+extern struct test_struct test_float_mul;
+extern struct test_struct test_float_div;
 extern struct test_struct test_arithmetic;
 extern struct test_struct test_N_queen;
 extern struct test_struct test_pi;

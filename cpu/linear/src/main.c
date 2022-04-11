@@ -117,7 +117,11 @@ static void usage(int argc, char *argv[])
                     "                    `arithmetic,integer,add` to test integer addition\n"\
                     "                    `arithmetic,integer,add` to test integer subtraction\n"\
                     "                    `arithmetic,integer,add` to test integer multiplication\n"\
-                    "                    `arithmetic,integer,add` to test integer division\n");
+                    "                    `arithmetic,integer,add` to test integer division\n"\
+                    "                    `arithmetic,float,add` to test float addition\n"\
+                    "                    `arithmetic,float,add` to test float subtraction\n"\
+                    "                    `arithmetic,float,add` to test float multiplication\n"\
+                    "                    `arithmetic,float,add` to test float division\n");
     fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
     exit(1);
@@ -164,6 +168,9 @@ void parse_args(int argc, char *argv[])
             break;
         case 't':
             if (!strncmp(optarg, "arithmetic", 10)) {
+                /**
+                 * 整形运算
+                 */
                 if (strstr(optarg, "integer")) {
                     if (strstr(optarg, "add")) {
                         args->test_type = TEST_ARITHMETIC_INT_ADD;
@@ -176,6 +183,25 @@ void parse_args(int argc, char *argv[])
                     } else {
                         fprintf(stderr, "Must specify add,sub,mul,div.\n");
                     }
+                /**
+                 * 浮点运算
+                 */
+                } else if (strstr(optarg, "float")) {
+                    if (strstr(optarg, "add")) {
+                        args->test_type = TEST_ARITHMETIC_FLOAT_ADD;
+                    } else if (strstr(optarg, "sub")) {
+                        args->test_type = TEST_ARITHMETIC_FLOAT_SUB;
+                    } else if (strstr(optarg, "mul")) {
+                        args->test_type = TEST_ARITHMETIC_FLOAT_MUL;
+                    } else if (strstr(optarg, "div")) {
+                        args->test_type = TEST_ARITHMETIC_FLOAT_DIV;
+                    } else {
+                        fprintf(stderr, "Must specify add,sub,mul,div.\n");
+                        usage(argc, argv);
+                    }
+                } else if (strlen(optarg) > strlen("arithmetic")) {
+                    fprintf(stderr, "Not support %s.\n", optarg);
+                    exit(1);
                 } else {
                     args->test_type = TEST_ARITHMETIC;
                 }
