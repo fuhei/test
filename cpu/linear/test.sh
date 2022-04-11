@@ -22,11 +22,13 @@ test_2_interval()
 
 test_3_integer_add()
 {
-	for ((i=1; i<=$(nproc); i+=4))
+	for ((i=4; i<=$(nproc); i+=4))
 	do
-		#echo "`expr $i - 1`"
-		build/linear -N 0 -a `expr $i - 1` -t arithmetic,integer,add -n 1 |\
-			grep Average | awk '{print $3}'
+		Ncpu="`expr $i - 1`"
+		max_cpu=`expr $i - 1`
+		Msec=`build/linear -N 0 -a $max_cpu -t arithmetic,integer,add -n 10 |\
+			grep Average | awk '{print $3}'`
+		echo -e "$i \t $Msec"
 	done
 }
 
