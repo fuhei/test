@@ -31,6 +31,7 @@ struct pthread_args {
 };
 
 struct args_opt {
+    int run_on_numa;
     int min_cpu;
     int max_cpu;
     int interval_cpu;
@@ -48,6 +49,7 @@ struct args_opt {
  *
  */
 struct args_opt default_args = {
+    .run_on_numa = -1,
     .min_cpu = 0,
     .max_cpu = 0,
     .interval_cpu = 1,
@@ -104,6 +106,7 @@ static void usage(int argc, char *argv[])
 {
     fprintf(stderr, "Usage: %s\n", argv[0]);
     fprintf(stderr, " -h, --help        Show help info.\n");
+    fprintf(stderr, " -N, --numa        Use CPU on a specific NUMA, default: no specific.\n");
     fprintf(stderr, " -i, --min-cpu     Min cpu number to test, default 0.\n");
     fprintf(stderr, " -a, --max-cpu     Max cpu number to test, default 0.\n");
     fprintf(stderr, " -I, --cpu-interval Interval of CPUs, default 1.\n"\
@@ -124,6 +127,7 @@ static void usage(int argc, char *argv[])
                     "                    `arithmetic,float,add` to test float division\n");
     fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
+    fprintf(stderr, "\n");
     exit(1);
 }
 
@@ -135,6 +139,7 @@ void parse_args(int argc, char *argv[])
     int i;
     static struct option options[] = {
         {"help", no_argument, 0, 'h'},
+        {"numa", required_argument, 0, 'N'},
         {"min-cpu", required_argument, 0, 'i'},
         {"max-cpu", required_argument, 0, 'a'},
         {"cpu-interval", required_argument, 0, 'I'},
@@ -146,13 +151,16 @@ void parse_args(int argc, char *argv[])
 
     while (1) {
         int option_index = 0;
-        int cmd = getopt_long(argc, argv, "i:a:I:c:t:n:h", options, &option_index);
+        int cmd = getopt_long(argc, argv, "N:i:a:I:c:t:n:h", options, &option_index);
         if (cmd == -1) {
             break;
         }
         switch (cmd) {
         case 'h':
             usage(argc, argv);
+            break;
+        case 'N':
+            args->run_on_numa = atoi(optarg);
             break;
         case 'i':
             args->min_cpu = atoi(optarg);
@@ -226,6 +234,15 @@ void parse_args(int argc, char *argv[])
             fprintf(stderr, "Unknown %s, cmd = %d(%c)\n", optarg, cmd, cmd);
             abort();
             break;
+        }
+    }
+
+    if (args->run_on_numa >= 0) {
+        if (systeminfo.nr_numa_node < args->run_on_numa + 1) {
+            fprintf(stderr, "Error -N, --numa(%d) must <= `number of NUMA NODE -1`(%d), "\
+                        "check with numactl --hardware.\n",
+                        args->run_on_numa, systeminfo.nr_numa_node-1);
+            exit(1);
         }
     }
 
@@ -339,6 +356,18 @@ void create_threads(struct args_opt *args)
     args->threads_args = malloc(sizeof(struct pthread_args *) * nr_thread);
     assert(args->threads_args && "Malloc Fatal.");
 
+    /* 首先检查 NUMA */
+    if (args->run_on_numa >= 0) {
+        for (j = 0, i = args->min_cpu; i <= args->max_cpu; j++, i += args->interval_cpu) {
+            int cpu = i;
+            if (numa_node_of_cpu(cpu) != args->run_on_numa) {
+                fprintf(stderr, "CPU%d is not on NUMA %d\n", cpu, args->run_on_numa);
+                exit(1);
+            }
+        }
+    }
+
+    /* 创建线程 */
     for (j = 0, i = args->min_cpu; i <= args->max_cpu; j++, i += args->interval_cpu) {
         int cpu = i;
         int idx = j;
@@ -357,6 +386,7 @@ void create_threads(struct args_opt *args)
         pthread_create(&args->threadids[idx], NULL, thread_routine, thread_arg);
     }
 
+    /* 等待线程结束 */
     for (i = 0; i < nr_thread; i++) {
         pthread_join(args->threadids[i], NULL);
     }
@@ -382,6 +412,9 @@ void sig_handler(int signum)
     }
 }
 
+/**
+ * @brief 主程序
+ */
 int main(int argc, char *argv[])
 {
     signal(SIGINT, sig_handler);
@@ -391,5 +424,6 @@ int main(int argc, char *argv[])
     parse_args(argc, argv);
 
     create_threads(&default_args);
+
     return 0;
 }
