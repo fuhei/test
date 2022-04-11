@@ -113,7 +113,11 @@ static void usage(int argc, char *argv[])
                     "                       --cpu-interval = 3\n"\
                     "                    the cpu list is 0, 3, 6, 9.\n");
     fprintf(stderr, " -t, --test        Test type, default: arithmetic.\n"\
-                    "                    [arithmetic|n-queen|pi]\n");
+                    "                    [arithmetic|n-queen|pi]\n"\
+                    "                    `arithmetic,integer,add` to test integer addition\n"\
+                    "                    `arithmetic,integer,add` to test integer subtraction\n"\
+                    "                    `arithmetic,integer,add` to test integer multiplication\n"\
+                    "                    `arithmetic,integer,add` to test integer division\n");
     fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
     exit(1);
@@ -159,8 +163,22 @@ void parse_args(int argc, char *argv[])
             args->cacheline_size = atoi(optarg);
             break;
         case 't':
-            if (!strcmp(optarg, "arithmetic")) {
-                args->test_type = TEST_ARITHMETIC;
+            if (!strncmp(optarg, "arithmetic", 10)) {
+                if (strstr(optarg, "integer")) {
+                    if (strstr(optarg, "add")) {
+                        args->test_type = TEST_ARITHMETIC_INT_ADD;
+                    } else if (strstr(optarg, "sub")) {
+                        args->test_type = TEST_ARITHMETIC_INT_SUB;
+                    } else if (strstr(optarg, "mul")) {
+                        args->test_type = TEST_ARITHMETIC_INT_MUL;
+                    } else if (strstr(optarg, "div")) {
+                        args->test_type = TEST_ARITHMETIC_INT_DIV;
+                    } else {
+                        fprintf(stderr, "Must specify add,sub,mul,div.\n");
+                    }
+                } else {
+                    args->test_type = TEST_ARITHMETIC;
+                }
             } else if (!strcmp(optarg, "n-queen")) {
                 args->test_type = TEST_N_QUEEN;
                 fprintf(stderr, "Not support n-queen yet.\n");
