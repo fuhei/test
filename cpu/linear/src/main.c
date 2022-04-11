@@ -110,10 +110,10 @@ static void usage(int argc, char *argv[])
                     "                   Such as \n"\
                     "                       --min-cpu = 0\n"\
                     "                       --max-cpu = 10,\n"\
-                    "                       --cpu-interval = 3"\
+                    "                       --cpu-interval = 3\n"\
                     "                    the cpu list is 0, 3, 6, 9.\n");
     fprintf(stderr, " -t, --test        Test type, default: arithmetic.\n"\
-                    "                    [arithmetic|n-queen|pi]");
+                    "                    [arithmetic|n-queen|pi]\n");
     fprintf(stderr, " -n, --test-loop   Max test loop, default 10000.\n");
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
     exit(1);
