@@ -20,4 +20,14 @@ test_2_interval()
 	done
 }
 
-test_2_interval
+test_3_integer_add()
+{
+	for ((i=1; i<=$(nproc); i+=4))
+	do
+		#echo "`expr $i - 1`"
+		build/linear -N 0 -a `expr $i - 1` -t arithmetic,integer,add -n 1 |\
+			grep Average | awk '{print $3}'
+	done
+}
+
+test_3_integer_add
