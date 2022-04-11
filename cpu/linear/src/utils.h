@@ -28,6 +28,11 @@ struct test_struct {
     void (*release_test)(struct test_struct*, void *arg);
 };
 
+
+extern struct test_struct test_arithmetic;
+extern struct test_struct test_N_queen;
+extern struct test_struct test_pi;
+
 /**
  * @brief 执行一个测试
  *

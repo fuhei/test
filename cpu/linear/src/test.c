@@ -13,9 +13,6 @@
 
 #include "utils.h"
 
-extern struct test_struct test_arithmetic;
-extern struct test_struct test_N_queen;
-extern struct test_struct test_pi;
 
 void test_execute(enum test_type type, int loop)
 {
