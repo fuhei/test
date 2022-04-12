@@ -26,6 +26,7 @@ invoke_integer_add(struct test_struct* test, void *arg)
     int a, b, c, i;
     a = b = c = 1;
 
+    while (--test->loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a + b;
     }
@@ -60,6 +61,7 @@ invoke_integer_sub(struct test_struct* test, void *arg)
     b = 1;
     c = 0;
 
+    while (--test->loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a - b;
     }
@@ -92,6 +94,7 @@ invoke_integer_mul(struct test_struct* test, void *arg)
     int a, b, c, i;
     a = b = c = 1;
 
+    while (--test->loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a * b;
     }
@@ -129,6 +132,7 @@ invoke_integer_div(struct test_struct* test, void *arg)
     b = 2;
     c = 1;
 
+    while (--test->loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a / b;
     }

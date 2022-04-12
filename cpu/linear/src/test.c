@@ -14,11 +14,11 @@
 #include "utils.h"
 
 
-void test_execute(enum test_type type, int loop)
+void test_execute(struct pthread_args *thread_arg)
 {
     struct test_struct *test = NULL;
 
-    switch (type) {
+    switch (thread_arg->test_type) {
     case TEST_ARITHMETIC:
         test = &test_arithmetic;
         break;
@@ -52,18 +52,22 @@ void test_execute(enum test_type type, int loop)
     case TEST_PI:
         test = &test_pi;
         break;
+    case TEST_SORT_QSORT:
+        test = &test_qsort;
+        break;
     default:
-        fprintf(stderr, "No test type %d, check -t, --type argument.\n", type);
+        fprintf(stderr, "No test type %d, check -t, --type argument.\n", thread_arg->test_type);
         return;
     }
+
+    test->thread_arg = thread_arg;
+    test->loop = thread_arg->test_loop;
 
     if (test->init_test) {
         test->init_test(test, test->arg);
     }
     if (test->invoke_test) {
-        while (--loop >= 0) {
-            test->invoke_test(test, test->arg);
-        }
+        test->invoke_test(test, test->arg);
     }
     if (test->release_test) {
         test->release_test(test, test->arg);

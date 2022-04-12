@@ -13,36 +13,12 @@
 #include <errno.h>
 #include <stdarg.h>
 #include <getopt.h>
-#include <pthread.h>
-#include <numa.h>
 #include <assert.h>
 #include <time.h>
 #include <unistd.h>
 #include <signal.h>
 
 #include "utils.h"
-
-struct pthread_args {
-    int cpu;
-    int numaid;
-    enum test_type test_type; // 和 struct args_opt.test_type 值相同
-    unsigned long test_loop; // 和 struct args_opt.test_loop 值相同
-    struct timespec start, end;
-};
-
-struct args_opt {
-    int run_on_numa;
-    int min_cpu;
-    int max_cpu;
-    int interval_cpu;
-    int nr_thread; // 用 max_cpu, min_cpu, interval_cpu 计算得到
-    pthread_t *threadids;
-    struct pthread_args **threads_args;
-    int cacheline_size;
-    enum test_type test_type;
-    unsigned long test_loop;
-};
-
 
 /**
  * @brief 默认参数
@@ -57,30 +33,8 @@ struct args_opt default_args = {
     .threads_args = NULL,
     .cacheline_size = 64,
     .test_type = TEST_ARITHMETIC,
-    .test_loop = 1,
-};
-
-struct numa_node_info {
-    int numaid;
-    struct bitmask cpumask;
-};
-
-struct cache_info {
-    struct {
-        int assoc;
-        int size;
-        int linesize;
-    } l1d, l1i, l2, l3, l4, *llc;
-};
-
-
-struct system_info {
-    int nr_numa_node;
-    int num_possible_cpus;
-    struct numa_node_info *numainfos;
-    /* Cache */
-    int nr_cache_level;
-    struct cache_info cache_info;
+    .custom_test_loop = false,
+    .test_loop = TEST_LOOP,
 };
 
 
@@ -187,7 +141,7 @@ static void usage(int argc, char *argv[])
                     "                       --cpu-interval = 3\n"\
                     "                    the cpu list is 0, 3, 6, 9.\n");
     fprintf(stderr, " -t, --test        Test type, default: arithmetic.\n"\
-                    "                    [arithmetic|n-queen|pi]\n"\
+                    "                    [arithmetic|n-queen|pi|qsort]\n"\
                     "                    `arithmetic,integer,add` to test integer addition\n"\
                     "                    `arithmetic,integer,add` to test integer subtraction\n"\
                     "                    `arithmetic,integer,add` to test integer multiplication\n"\
@@ -198,10 +152,12 @@ static void usage(int argc, char *argv[])
                     "                    `arithmetic,float,add` to test float division\n");
     fprintf(stderr, " -n, --test-loop   Max test loop, default %ld.\n"\
                     "                    `arithmetic default loop is %ld\n"\
-                    "                    `pi default loop(accurate) is %ld\n",
+                    "                    `pi default loop(accurate) is %ld\n"\
+                    "                    `qsort loop means elements of array, default %ld.\n",
                         default_args.test_loop,
                         TEST_ARITHMETIC_LOOP * default_args.test_loop,
-                        TEST_PI_LOOP * default_args.test_loop);
+                        TEST_PI_LOOP * default_args.test_loop,
+                        TEST_QSORT_NR_ELEMENTS * default_args.test_loop);
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n"\
                     "                   Use `lstopo-no-graphics --no-io --no-legend --of txt` show cache detail.\n");
     fprintf(stderr, "\n");
@@ -296,6 +252,11 @@ void parse_args(int argc, char *argv[])
                 exit(1);
             } else if (!strcmp(optarg, "pi")) {
                 args->test_type = TEST_PI;
+            } else if (!strcmp(optarg, "qsort")) {
+                args->test_type = TEST_SORT_QSORT;
+                if (!args->custom_test_loop) {
+                    args->test_loop *= TEST_QSORT_NR_ELEMENTS;
+                }
             } else {
                 fprintf(stderr, "Specify -t, --type arg invalid.\n");
                 usage(argc, argv);
@@ -303,6 +264,7 @@ void parse_args(int argc, char *argv[])
             break;
         case 'n':
             args->test_loop = strtoul(optarg, NULL, 0);
+            args->custom_test_loop = true;
             break;
         case '?':
             abort();
@@ -407,7 +369,7 @@ static void *thread_routine(void *arg)
     /* 记录起始时间 */
     clock_gettime(CLOCK_MONOTONIC, &my_arg->start);
 
-    test_execute(my_arg->test_type, my_arg->test_loop);
+    test_execute(my_arg);
 
     /* 记录结束时间 */
     clock_gettime(CLOCK_MONOTONIC, &my_arg->end);
@@ -457,6 +419,7 @@ void create_threads(struct args_opt *args)
 
         thread_arg->cpu = cpu;
         thread_arg->numaid = numa_node_of_cpu(cpu);
+        thread_arg->cacheline_size = args->cacheline_size;
         thread_arg->test_type = args->test_type;
         thread_arg->test_loop = args->test_loop;
 

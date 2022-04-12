@@ -28,6 +28,7 @@ invoke_arithmetic(struct test_struct* test, void *arg)
     long double ld = 100;
     int loop = TEST_ARITHMETIC_LOOP;
 
+    while (--test->loop >= 0)
     while (loop--) {
         ld += d;
         d -= f;
