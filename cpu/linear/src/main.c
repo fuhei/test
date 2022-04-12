@@ -70,7 +70,7 @@ struct cache_info {
         int assoc;
         int size;
         int linesize;
-    } l1d, l1i, l2, l3, l4;
+    } l1d, l1i, l2, l3, l4, *llc;
 };
 
 
@@ -78,6 +78,7 @@ struct system_info {
     int nr_numa_node;
     int num_possible_cpus;
     struct numa_node_info *numainfos;
+    /* Cache */
     int nr_cache_level;
     struct cache_info cache_info;
 };
@@ -106,8 +107,6 @@ void get_system_info(void)
         numa_node_to_cpus(i, &systeminfo.numainfos[i].cpumask);
     }
 
-    //fprintf(stdout, "Number of NUMA NODE %d\n", systeminfo.nr_numa_node);
-    //fprintf(stdout, "Max Number of CPU %d\n", systeminfo.num_possible_cpus);
 #define READ_CACHE(to, name) \
     cache->to.assoc = sysconf(_SC_##name##_ASSOC);    \
     cache->to.size = sysconf(_SC_##name##_SIZE);  \
@@ -121,6 +120,53 @@ void get_system_info(void)
 
 #undef READ_CACHE
 
+    if (cache->l2.linesize >= 0) {
+        systeminfo.nr_cache_level = 2;
+        cache->llc = &cache->l2;
+    }
+    if (cache->l3.linesize >= 0) {
+        systeminfo.nr_cache_level = 3;
+        cache->llc = &cache->l3;
+    }
+    if (cache->l4.linesize >= 0) {
+        systeminfo.nr_cache_level = 4;
+        cache->llc = &cache->l4;
+    }
+}
+
+void show_system_info(void)
+{
+    struct cache_info *cache = &systeminfo.cache_info;
+
+    fprintf(stdout, "Number of NUMA NODE %d\n", systeminfo.nr_numa_node);
+    fprintf(stdout, "Max Number of CPU %d\n", systeminfo.num_possible_cpus);
+
+    if (cache->l2.linesize >= 0) {
+        systeminfo.nr_cache_level = 2;
+        cache->llc = &cache->l2;
+    }
+    if (cache->l3.linesize >= 0) {
+        systeminfo.nr_cache_level = 3;
+        cache->llc = &cache->l3;
+    }
+    if (cache->l4.linesize >= 0) {
+        systeminfo.nr_cache_level = 4;
+        cache->llc = &cache->l4;
+    }
+    fprintf(stderr, "\033[32m%-8s %-8s %-8s %-8s\033[m\n", \
+                    "Cache", "Assoc", "Size(KB)", "LineSize");
+#define PRINT_CACHE(l) \
+    if (cache->l.linesize > 0) \
+    fprintf(stderr, "%-8s %-8d %-8d %-8d %s\n", #l, \
+        cache->l.assoc, cache->l.size / 1024, cache->l.linesize, \
+        cache->llc==&cache->l?"\033[31m(LLC)\033[m":"");
+    PRINT_CACHE(l1d);
+    PRINT_CACHE(l1i);
+    PRINT_CACHE(l2);
+    PRINT_CACHE(l3);
+    PRINT_CACHE(l4);
+#undef PRINT_CACHE
+    //fprintf(stderr, "Last Cache Level %d(LLC)\n", systeminfo.nr_cache_level);
 }
 
 /**
@@ -451,6 +497,8 @@ int main(int argc, char *argv[])
     get_system_info();
 
     parse_args(argc, argv);
+
+    show_system_info();
 
     create_threads(&default_args);
 
