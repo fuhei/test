@@ -14,13 +14,13 @@
 
 
 static void _no_optimize
-init_arithmetic(struct test_struct* test, void *arg)
+init_arithmetic(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_arithmetic(struct test_struct* test, void *arg)
+invoke_arithmetic(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     unsigned long ul = 100;
     float f = 100;
@@ -28,7 +28,7 @@ invoke_arithmetic(struct test_struct* test, void *arg)
     long double ld = 100;
     int loop = TEST_ARITHMETIC_LOOP;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     while (loop--) {
         ld += d;
         d -= f;
@@ -38,7 +38,7 @@ invoke_arithmetic(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_arithmetic(struct test_struct* test, void *arg)
+release_arithmetic(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }

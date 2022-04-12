@@ -107,6 +107,9 @@ void show_system_info(void)
         systeminfo.nr_cache_level = 4;
         cache->llc = &cache->l4;
     }
+
+    fprintf(stdout, "Cache info may not accurate, use command:\n"\
+            "   $ lstopo-no-graphics --no-io --no-legend --of txt\n");
     fprintf(stdout, "\033[32m%-8s %-8s %-8s %-8s\033[m\n", \
                     "Cache", "Assoc", "Size(KB)", "LineSize");
 #define PRINT_CACHE(l) \
@@ -120,8 +123,6 @@ void show_system_info(void)
     PRINT_CACHE(l3);
     PRINT_CACHE(l4);
 #undef PRINT_CACHE
-    fprintf(stdout, "Cache info may not accurate, use command:"\
-            "   $ lstopo-no-graphics --no-io --no-legend --of txt\n");
 }
 
 /**
@@ -309,6 +310,19 @@ void parse_args(int argc, char *argv[])
     //exit(1);
 }
 
+unsigned long timespec_nsec_interval(struct timespec start, struct timespec end)
+{
+    unsigned long nsec = 0;
+
+    if (end.tv_nsec < start.tv_nsec) {
+        end.tv_nsec += 1000000000L;
+        end.tv_sec--;
+    }
+    nsec = (end.tv_sec - start.tv_sec)*1000000000UL
+                        + (end.tv_nsec - start.tv_nsec);
+    return nsec;
+}
+
 /**
  * @brief 分析结果
  *
@@ -316,34 +330,44 @@ void parse_args(int argc, char *argv[])
 void analyze_result(struct args_opt *args)
 {
     int i;
-    unsigned long total_nsec;
+    unsigned long total_nsec, total_init, total_invoke, total_release;
 
     int Ncpu = args->nr_thread;
 
-    fprintf(stdout, "\033[1;7m%-8s %-8s %-10s %-10s %-10s\033[m\n",
-            "CPU", "NUMA", "SEC", "MSEC", "USEC");
+    total_nsec = total_init = total_invoke = total_release = 0;
+
+    fprintf(stdout, "\033[1;7m%-8s %-8s %-10s %-10s %-10s\033[m "\
+                    "\033[1;7m%-10s %-10s %-10s\033[m\n",
+            "CPU", "NUMA", "SEC", "MSEC", "USEC", "Init(us)", "Invoke(us)", "Release(us)");
     for (i = 0; i < Ncpu; i++) {
         struct pthread_args *thread_arg = args->threads_args[i];
-        struct timespec *start = &thread_arg->start;
-        struct timespec *end = &thread_arg->end;
 
-        if (end->tv_nsec < start->tv_nsec) {
-            end->tv_nsec += 1000000000L;
-            end->tv_sec--;
-        }
-        unsigned long nsec = (end->tv_sec - start->tv_sec)*1000000000UL
-                         + (end->tv_nsec - start->tv_nsec);
+        unsigned long nsec = timespec_nsec_interval(thread_arg->start, thread_arg->end);
+        unsigned long nsec_init = timespec_nsec_interval(thread_arg->start_init,
+                        thread_arg->end_init);
+        unsigned long nsec_invoke = timespec_nsec_interval(thread_arg->start_invoke,
+                        thread_arg->end_invoke);
+        unsigned long nsec_release = timespec_nsec_interval(thread_arg->start_release,
+                        thread_arg->end_release);
 
-        fprintf(stdout, "%-8d %-8d %-10ld %-10ld %-10ld\n",
+        fprintf(stdout, "%-8d %-8d %-10ld %-10ld %-10ld %-10ld %-10ld %-10ld\n",
                     thread_arg->cpu, thread_arg->numaid,
-                    nsec/1000000000, nsec/1000000, nsec/1000);
+                    nsec/1000000000, nsec/1000000, nsec/1000,
+                    nsec_init/1000, nsec_invoke/1000, nsec_release/1000);
         total_nsec += nsec;
+        total_init += nsec_init;
+        total_invoke += nsec_invoke;
+        total_release += nsec_release;
     }
 
-    fprintf(stdout, "\033[32m%-8s %-8s %-10ld %-10ld %-10ld\033[m\n", "Total", "",
-            total_nsec/1000000000, total_nsec/1000000, total_nsec/1000);
-    fprintf(stdout, "\033[33m%-8s %-8s %-10ld %-10ld %-10ld\033[m\n", "Average", "",
-            total_nsec/1000000000/Ncpu, total_nsec/1000000/Ncpu, total_nsec/1000/Ncpu);
+    fprintf(stdout, "\033[32m%-8s %-8s %-10ld %-10ld %-10ld %-10ld %-10ld %-10ld\033[m\n", \
+            "Total", "",
+            total_nsec/1000000000, total_nsec/1000000, total_nsec/1000,
+            total_init/1000, total_invoke/1000, total_release/1000);
+    fprintf(stdout, "\033[33m%-8s %-8s %-10ld %-10ld %-10ld %-10ld %-10ld %-10ld\033[m\n", \
+            "Average", "",
+            total_nsec/1000000000/Ncpu, total_nsec/1000000/Ncpu, total_nsec/1000/Ncpu,
+            total_init/1000/Ncpu, total_invoke/1000/Ncpu, total_release/1000/Ncpu);
     fprintf(stdout, "Total CPU core %d\n", Ncpu);
 }
 

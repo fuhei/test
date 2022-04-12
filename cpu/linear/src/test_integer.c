@@ -15,25 +15,25 @@
 
 
 static void _no_optimize
-init_integer_add(struct test_struct* test, void *arg)
+init_integer_add(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_integer_add(struct test_struct* test, void *arg)
+invoke_integer_add(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int a, b, c, i;
     a = b = c = 1;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a + b;
     }
 }
 
 static void _no_optimize
-release_integer_add(struct test_struct* test, void *arg)
+release_integer_add(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
@@ -47,13 +47,13 @@ struct test_struct test_integer_add = {
 
 
 static void _no_optimize
-init_integer_sub(struct test_struct* test, void *arg)
+init_integer_sub(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_integer_sub(struct test_struct* test, void *arg)
+invoke_integer_sub(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int a, b, i;
     int _un_used c;
@@ -61,7 +61,7 @@ invoke_integer_sub(struct test_struct* test, void *arg)
     b = 1;
     c = 0;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a - b;
     }
@@ -69,7 +69,7 @@ invoke_integer_sub(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_integer_sub(struct test_struct* test, void *arg)
+release_integer_sub(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
@@ -83,18 +83,18 @@ struct test_struct test_integer_sub = {
 
 
 static void _no_optimize
-init_integer_mul(struct test_struct* test, void *arg)
+init_integer_mul(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_integer_mul(struct test_struct* test, void *arg)
+invoke_integer_mul(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int a, b, c, i;
     a = b = c = 1;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a * b;
     }
@@ -102,7 +102,7 @@ invoke_integer_mul(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_integer_mul(struct test_struct* test, void *arg)
+release_integer_mul(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
@@ -117,13 +117,13 @@ struct test_struct test_integer_mul = {
 
 
 static void _no_optimize
-init_integer_div(struct test_struct* test, void *arg)
+init_integer_div(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_integer_div(struct test_struct* test, void *arg)
+invoke_integer_div(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int a, b, i;
     int _un_used c;
@@ -132,7 +132,7 @@ invoke_integer_div(struct test_struct* test, void *arg)
     b = 2;
     c = 1;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a / b;
     }
@@ -140,7 +140,7 @@ invoke_integer_div(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_integer_div(struct test_struct* test, void *arg)
+release_integer_div(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }

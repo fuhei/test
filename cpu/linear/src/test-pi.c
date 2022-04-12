@@ -59,23 +59,23 @@ static double _un_used caculate_pi(int accuracy)
 }
 
 static void _no_optimize
-init_pi(struct test_struct* test, void *arg)
+init_pi(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_pi(struct test_struct* test, void *arg)
+invoke_pi(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     double _un_used pi;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
         pi = caculate_pi(TEST_PI_LOOP);
     //printf("pi = %lf\n", pi);
 }
 
 static void _no_optimize
-release_pi(struct test_struct* test, void *arg)
+release_pi(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }

@@ -14,19 +14,19 @@
 
 
 static void _no_optimize
-init_N_queen(struct test_struct* test, void *arg)
+init_N_queen(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_N_queen(struct test_struct* test, void *arg)
+invoke_N_queen(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-release_N_queen(struct test_struct* test, void *arg)
+release_N_queen(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }

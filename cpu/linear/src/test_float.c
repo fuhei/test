@@ -15,20 +15,20 @@
 
 
 static void _no_optimize
-init_float_add(struct test_struct* test, void *arg)
+init_float_add(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_float_add(struct test_struct* test, void *arg)
+invoke_float_add(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int i;
     float a, b, c;
     a = b = c = 1;
 
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a + b;
     }
@@ -36,7 +36,7 @@ invoke_float_add(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_float_add(struct test_struct* test, void *arg)
+release_float_add(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
@@ -50,13 +50,13 @@ struct test_struct test_float_add = {
 
 
 static void _no_optimize
-init_float_sub(struct test_struct* test, void *arg)
+init_float_sub(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_float_sub(struct test_struct* test, void *arg)
+invoke_float_sub(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int i;
     float a, b;
@@ -65,7 +65,7 @@ invoke_float_sub(struct test_struct* test, void *arg)
     b = 1;
     c = 0;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a - b;
     }
@@ -73,7 +73,7 @@ invoke_float_sub(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_float_sub(struct test_struct* test, void *arg)
+release_float_sub(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
@@ -87,19 +87,19 @@ struct test_struct test_float_sub = {
 
 
 static void _no_optimize
-init_float_mul(struct test_struct* test, void *arg)
+init_float_mul(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_float_mul(struct test_struct* test, void *arg)
+invoke_float_mul(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int i;
     float a, b, c;
     a = b = c = 1;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a * b;
     }
@@ -107,7 +107,7 @@ invoke_float_mul(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_float_mul(struct test_struct* test, void *arg)
+release_float_mul(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
@@ -122,13 +122,13 @@ struct test_struct test_float_mul = {
 
 
 static void _no_optimize
-init_float_div(struct test_struct* test, void *arg)
+init_float_div(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }
 
 static void _no_optimize
-invoke_float_div(struct test_struct* test, void *arg)
+invoke_float_div(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     int i;
     float a, b;
@@ -138,7 +138,7 @@ invoke_float_div(struct test_struct* test, void *arg)
     b = 2;
     c = 1;
 
-    while (--test->loop >= 0)
+    while (--thread_arg->test_loop >= 0)
     for (i = 0; i < TEST_ARITHMETIC_LOOP; i++) {
         c = a / b;
     }
@@ -146,7 +146,7 @@ invoke_float_div(struct test_struct* test, void *arg)
 }
 
 static void _no_optimize
-release_float_div(struct test_struct* test, void *arg)
+release_float_div(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
 
 }

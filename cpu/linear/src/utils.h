@@ -39,6 +39,13 @@ struct pthread_args {
     enum test_type test_type; // 和 struct args_opt.test_type 值相同
     unsigned long test_loop; // 和 struct args_opt.test_loop 值相同
     struct timespec start, end;
+    struct timespec start_init, end_init,
+                    start_invoke, end_invoke,
+                    start_release, end_release;
+
+    struct test_struct *test;
+
+    void *test_data;
 };
 
 #define _un_used __attribute__((unused))
@@ -50,13 +57,11 @@ struct pthread_args {
 
 struct test_struct {
     void *arg;
-    int loop;   // thread_arg.test_loop
-    struct pthread_args *thread_arg;
 
     /* 定义函数时，清添加 _no_optimize 属性 */
-    void (*init_test)(struct test_struct*, void *arg);
-    void (*invoke_test)(struct test_struct*, void *arg);
-    void (*release_test)(struct test_struct*, void *arg);
+    void (*init_test)(struct test_struct*, struct pthread_args *thread_arg, void *arg);
+    void (*invoke_test)(struct test_struct*, struct pthread_args *thread_arg, void *arg);
+    void (*release_test)(struct test_struct*, struct pthread_args *thread_arg, void *arg);
 };
 
 

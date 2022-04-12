@@ -14,53 +14,67 @@
 
 #include "utils.h"
 
-static unsigned long nr_elements = 0;
-static int *int_array = NULL;
+struct qsort_test_data {
+    unsigned long nr_elements;
+    int *int_array;
+};
 
-void print_array()
+void print_array(struct qsort_test_data *data)
 {
     unsigned long i;
-    for (i = 0; i < nr_elements; i++) {
-        printf("%d ", int_array[i]);
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+    pthread_mutex_lock(&mutex);
+    for (i = 0; i < data->nr_elements; i++) {
+        printf("%d ", data->int_array[i]);
     } printf("\n");
+    pthread_mutex_unlock(&mutex);
 }
 
 static void _no_optimize
-init_qsort(struct test_struct* test, void *arg)
+init_qsort(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
     unsigned long i;
-    nr_elements = test->loop;
-    printf("qsort nr_elements = %ld.\n", nr_elements);
+    struct qsort_test_data *data;
 
-    int_array = aligned_alloc(test->thread_arg->cacheline_size, sizeof(*int_array)*nr_elements);
+    data = malloc(sizeof(struct qsort_test_data));
+    thread_arg->test_data = data;
 
-    for (i = 0; i < nr_elements; i++) {
+    data->nr_elements = thread_arg->test_loop;
+    //printf("qsort nr_elements = %ld.\n", data->nr_elements);
+
+    data->int_array = aligned_alloc(thread_arg->cacheline_size,
+                        sizeof(int)*data->nr_elements);
+
+    for (i = 0; i < data->nr_elements; i++) {
         /**
          * 初始化数组为： [0, 1, 2, 3, 4, ...]
          */
-        int_array[i] = i;
+        data->int_array[i] = i;
     }
-    //print_array();
+    //print_array(data);
 }
 
 static inline int int_cmp(const void *a, const void *b)
 {
-    int *A = (int *)a;
-    int *B = (int *)b;
-    return *B - *A;
+    return *(int *)a - *(int *)b;
 }
 
 static void _no_optimize
-invoke_qsort(struct test_struct* test, void *arg)
+invoke_qsort(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
-    qsort(int_array, nr_elements, sizeof(int), int_cmp);
-    printf("qsort.\n");
+    struct qsort_test_data *data = thread_arg->test_data;
+
+    qsort(data->int_array, data->nr_elements, sizeof(int), int_cmp);
+    //printf("qsort.\n");
 }
 
 static void _no_optimize
-release_qsort(struct test_struct* test, void *arg)
+release_qsort(struct test_struct* test, struct pthread_args *thread_arg, void *arg)
 {
-    //print_array();
+    struct qsort_test_data *data = thread_arg->test_data;
+    //print_array(data);
+    free(data->int_array);
+    free(data);
 }
 
 

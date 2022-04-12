@@ -56,20 +56,26 @@ void test_execute(struct pthread_args *thread_arg)
         test = &test_qsort;
         break;
     default:
-        fprintf(stderr, "No test type %d, check -t, --type argument.\n", thread_arg->test_type);
+        fprintf(stderr, "No test type %d, check -t, --type argument.\n",
+                thread_arg->test_type);
         return;
     }
 
-    test->thread_arg = thread_arg;
-    test->loop = thread_arg->test_loop;
+    thread_arg->test = test;
 
     if (test->init_test) {
-        test->init_test(test, test->arg);
+        clock_gettime(CLOCK_MONOTONIC, &thread_arg->start_init);
+        test->init_test(test, thread_arg, test->arg);
+        clock_gettime(CLOCK_MONOTONIC, &thread_arg->end_init);
     }
     if (test->invoke_test) {
-        test->invoke_test(test, test->arg);
+        clock_gettime(CLOCK_MONOTONIC, &thread_arg->start_invoke);
+        test->invoke_test(test, thread_arg, test->arg);
+        clock_gettime(CLOCK_MONOTONIC, &thread_arg->end_invoke);
     }
     if (test->release_test) {
-        test->release_test(test, test->arg);
+        clock_gettime(CLOCK_MONOTONIC, &thread_arg->start_release);
+        test->release_test(test, thread_arg, test->arg);
+        clock_gettime(CLOCK_MONOTONIC, &thread_arg->end_release);
     }
 }
