@@ -166,7 +166,8 @@ void show_system_info(void)
     PRINT_CACHE(l3);
     PRINT_CACHE(l4);
 #undef PRINT_CACHE
-    //fprintf(stdout, "Last Cache Level %d(LLC)\n", systeminfo.nr_cache_level);
+    fprintf(stdout, "Cache info may not accurate, use command:"\
+            "   $ lstopo-no-graphics --no-io --no-legend --of txt\n");
 }
 
 /**
@@ -201,7 +202,8 @@ static void usage(int argc, char *argv[])
                         default_args.test_loop,
                         TEST_ARITHMETIC_LOOP * default_args.test_loop,
                         TEST_PI_LOOP * default_args.test_loop);
-    fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n");
+    fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n"\
+                    "                   Use `lstopo-no-graphics --no-io --no-legend --of txt` show cache detail.\n");
     fprintf(stderr, "\n");
     exit(1);
 }
