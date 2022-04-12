@@ -377,9 +377,9 @@ void analyze_result(struct args_opt *args)
     }
 
     fprintf(stdout, "\033[32m%-8s %-8s %-10ld %-10ld %-10ld\033[m\n", "Total", "",
-            total_nsec/1000000, total_nsec/1000, total_nsec);
+            total_nsec/1000000000, total_nsec/1000000, total_nsec/1000);
     fprintf(stdout, "\033[33m%-8s %-8s %-10ld %-10ld %-10ld\033[m\n", "Average", "",
-            total_nsec/1000000/Ncpu, total_nsec/1000/Ncpu, total_nsec/Ncpu);
+            total_nsec/1000000000/Ncpu, total_nsec/1000000/Ncpu, total_nsec/1000/Ncpu);
     fprintf(stdout, "Total CPU core %d\n", Ncpu);
 }
 
