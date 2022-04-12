@@ -60,20 +60,12 @@ test_type()
 }
 
 test_type arithmetic,integer,add
-test_type arithmetic,integer,add
-test_type arithmetic,integer,sub
 test_type arithmetic,integer,sub
 test_type arithmetic,integer,mul
-test_type arithmetic,integer,mul
-test_type arithmetic,integer,div
 test_type arithmetic,integer,div
 
 test_type arithmetic,float,add
-test_type arithmetic,float,add
-test_type arithmetic,float,sub
 test_type arithmetic,float,sub
 test_type arithmetic,float,mul
-test_type arithmetic,float,mul
-test_type arithmetic,float,div
 test_type arithmetic,float,div
 
