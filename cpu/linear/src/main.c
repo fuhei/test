@@ -372,7 +372,7 @@ void analyze_result(struct args_opt *args)
 
         fprintf(stdout, "%-8d %-8d %-10ld %-10ld %-10ld\n",
                     thread_arg->cpu, thread_arg->numaid,
-                    nsec/1000000, nsec/1000, nsec);
+                    nsec/1000000000, nsec/1000000, nsec/1000);
         total_nsec += nsec;
     }
 
