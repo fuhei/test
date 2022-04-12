@@ -6,7 +6,7 @@ test_pi()
 	for ((i=4; i<$(nproc); i+=4))
 	do
 		max_cpu=`expr $i - 1`
-		Usec=`build/linear -a $max_cpu -n 100 -t pi | grep Average | awk '{print $3}'`
+		Usec=`build/linear -a $max_cpu -n 100 -t pi | grep Average | awk '{print $4}'`
 		echo -e "$i \t $Usec"
 	done
 }
