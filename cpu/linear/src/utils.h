@@ -37,7 +37,7 @@ struct pthread_args {
     int numaid;
     int cacheline_size;
     enum test_type test_type; // 和 struct args_opt.test_type 值相同
-    unsigned long test_loop; // 和 struct args_opt.test_loop 值相同
+    long test_loop; // 和 struct args_opt.test_loop 值相同
     struct timespec start, end;
     struct timespec start_init, end_init,
                     start_invoke, end_invoke,
