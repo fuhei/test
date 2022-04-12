@@ -44,6 +44,7 @@ test_3_float_add()
 	done
 }
 
+# 一亿次 计算
 test_type()
 {
 	type=$1
@@ -52,7 +53,7 @@ test_type()
 	do
 		Ncpu="`expr $i - 1`"
 		max_cpu=`expr $i - 1`
-		Msec=`build/linear -N 0 -a $max_cpu -t $type -n 10 |\
+		Msec=`build/linear -N 0 -a $max_cpu -t $type -n 1 |\
 			grep Average | awk '{print $3}'`
 		echo -e "$i \t $Msec"
 	done
