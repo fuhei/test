@@ -153,11 +153,11 @@ void show_system_info(void)
         systeminfo.nr_cache_level = 4;
         cache->llc = &cache->l4;
     }
-    fprintf(stderr, "\033[32m%-8s %-8s %-8s %-8s\033[m\n", \
+    fprintf(stdout, "\033[32m%-8s %-8s %-8s %-8s\033[m\n", \
                     "Cache", "Assoc", "Size(KB)", "LineSize");
 #define PRINT_CACHE(l) \
     if (cache->l.linesize > 0) \
-    fprintf(stderr, "%-8s %-8d %-8d %-8d %s\n", #l, \
+    fprintf(stdout, "%-8s %-8d %-8d %-8d %s\n", #l, \
         cache->l.assoc, cache->l.size / 1024, cache->l.linesize, \
         cache->llc==&cache->l?"\033[31m(LLC)\033[m":"");
     PRINT_CACHE(l1d);
@@ -166,7 +166,7 @@ void show_system_info(void)
     PRINT_CACHE(l3);
     PRINT_CACHE(l4);
 #undef PRINT_CACHE
-    //fprintf(stderr, "Last Cache Level %d(LLC)\n", systeminfo.nr_cache_level);
+    //fprintf(stdout, "Last Cache Level %d(LLC)\n", systeminfo.nr_cache_level);
 }
 
 /**
