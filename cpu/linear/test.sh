@@ -21,7 +21,7 @@ test_type()
 		Ncpu="`expr $i - 1`"
 		max_cpu=`expr $i - 1`
 		Usec=`build/linear -N 0 -a $max_cpu -t $type -n 1 |\
-			grep Average | awk '{print $3}'`
+			grep Average | awk '{print $4}'`
 		echo -e "$i \t $Usec"
 	done
 }
@@ -39,4 +39,4 @@ test_arithmetic()
 	test_type arithmetic,float,div
 }
 
-test_pi
+test_arithmetic
