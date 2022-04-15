@@ -12,6 +12,17 @@ function cleanall {
 	return 0
 }
 
+function cleanall {
+	filename=("*.o" "*.gch" "*~"  "*.out" "core.*" \
+				"vgcore.*" "*.exe" "*.so" "*.a" "perf.data*"\
+				"trace.dat")
+	for name in ${filename[@]}; do
+	    #echo $name
+	    find . -name $name -type f -print -exec rm -rf {} \;
+	done 
+	return 0
+}
+
 function clean {
 	echo $PWD | grep "\/test" 2>&1 > /dev/null
 	if [ $? != 0 ]; then
