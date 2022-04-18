@@ -154,10 +154,12 @@ static void usage(int argc, char *argv[])
     fprintf(stderr, " -n, --test-loop   Max test loop, default %ld.\n"\
                     "                    `arithmetic default loop is %ld\n"\
                     "                    `pi default loop(accurate) is %ld\n"\
+                    "                    `n-queen default loop(number of solutions) is %ld\n"\
                     "                    `qsort loop means elements of array, default %ld.\n",
                         default_args.test_loop,
                         TEST_ARITHMETIC_LOOP * default_args.test_loop,
                         TEST_PI_LOOP * default_args.test_loop,
+                        TEST_N_QUEEN_NR_SOLUTIONS * default_args.test_loop,
                         TEST_QSORT_NR_ELEMENTS * default_args.test_loop);
     fprintf(stderr, " -c, --cache-line  Manual set Cache line size, default 64.\n"\
                     "                   Use `lstopo-no-graphics --no-io --no-legend --of txt` show cache detail.\n");
@@ -249,8 +251,9 @@ void parse_args(int argc, char *argv[])
                 }
             } else if (!strcmp(optarg, "n-queen")) {
                 args->test_type = TEST_N_QUEEN;
-                fprintf(stderr, "Not support n-queen yet.\n");
-                exit(1);
+                if (!args->custom_test_loop) {
+                    args->test_loop *= TEST_N_QUEEN_NR_SOLUTIONS;
+                }
             } else if (!strcmp(optarg, "pi")) {
                 args->test_type = TEST_PI;
             } else if (!strcmp(optarg, "qsort")) {

@@ -54,6 +54,7 @@ struct pthread_args {
 #define TEST_ARITHMETIC_LOOP    1000000000
 #define TEST_PI_LOOP    10000000
 #define TEST_QSORT_NR_ELEMENTS    100000
+#define TEST_N_QUEEN_NR_SOLUTIONS   16  //counter for the number of solutions
 
 struct test_struct {
     void *arg;
