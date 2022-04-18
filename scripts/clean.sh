@@ -1,10 +1,8 @@
 #!/bin/sh
 # 荣涛 
 
-function cleanall {
-	filename=("*.o" "*.gch" "*~"  "*.out" "core.*" \
-				"vgcore.*" "*.exe" "*.so" "*.a" "perf.data*"\
-				"trace.dat")
+function clean_out {
+	filename=("*.out")
 	for name in ${filename[@]}; do
 	    #echo $name
 	    find . -name $name -type f -print -exec rm -rf {} \;

@@ -1,4 +1,8 @@
 #!/bin/bash
 # 1. Create symbol link ln -s $PWD/rongtaorc ~/.rongtaorc
 # 2. Add `. ~/.rongtaorc` to `~/.bashrc`
-source /home/rongtao/Git/test/scripts/cmd-*
+
+for script in $(ls /home/rongtao/Git/test/scripts/cmd-*)
+do
+	source $script
+done
